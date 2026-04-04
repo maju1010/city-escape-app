@@ -8,13 +8,12 @@ import QRShare from "./QRShare";
 import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/sounds";
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
+import { getLocationImage } from "@/lib/locationImages";
 
 function TaskImage({ locationName, imageUrl }: { locationName: string; imageUrl: string | null }) {
   const [error, setError] = useState(false);
   if (!locationName && !imageUrl) return null;
-  const src =
-    imageUrl ||
-    `https://picsum.photos/seed/${encodeURIComponent(locationName)}/800/400`;
+  const src = getLocationImage(locationName, imageUrl);
   return (
     <div className="relative h-36 w-full overflow-hidden bg-[#1a1828]">
       {!error && (

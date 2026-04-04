@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import type { Task } from "./GameClient";
+import { getLocationImage } from "@/lib/locationImages";
 
 const MapComponent = dynamic(() => import("./MapComponent"), {
   ssr: false,
@@ -115,9 +116,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
   const isNearby = distance !== null && distance <= 50;
 
   const [imgError, setImgError] = useState(false);
-  const imgSrc =
-    task.image_url ||
-    `https://picsum.photos/seed/${encodeURIComponent(task.location_name || "city")}/800/400`;
+  const imgSrc = getLocationImage(task.location_name || "", task.image_url);
 
   return (
     <div className="min-h-screen flex flex-col">

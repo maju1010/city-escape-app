@@ -2,16 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-
-const CITY_IMAGES: Record<string, string> = {
-  aarhus: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
-};
-
-function getCityImage(name: string, imageUrl: string | null): string {
-  if (imageUrl) return imageUrl;
-  const key = name.toLowerCase().trim();
-  return CITY_IMAGES[key] || `https://picsum.photos/seed/${encodeURIComponent(name)}/800/400`;
-}
+import { getCityImage } from "@/lib/locationImages";
 
 type City = {
   id: string;
