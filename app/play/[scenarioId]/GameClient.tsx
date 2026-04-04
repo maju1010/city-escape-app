@@ -69,45 +69,60 @@ function getTeamKey(scenarioId: string) {
   return `city-escape-team-${scenarioId}`;
 }
 
-// ── Combination lock component ──
-function CombinationLock({
+// ── PIN code component ──
+function PinInput({
   value,
   onChange,
 }: {
   value: string;
   onChange: (v: string) => void;
 }) {
-  const digits = value.padStart(4, "0").split("").map(Number);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const digits = value.padEnd(4, "").split("").slice(0, 4);
 
-  function adjust(index: number, delta: number) {
+  function handleKey(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      const next = [...digits];
+      if (next[i]) {
+        next[i] = "";
+        onChange(next.join(""));
+      } else if (i > 0) {
+        next[i - 1] = "";
+        onChange(next.join(""));
+        inputRefs.current[i - 1]?.focus();
+      }
+    }
+  }
+
+  function handleChange(i: number, raw: string) {
+    const digit = raw.replace(/\D/g, "").slice(-1);
     const next = [...digits];
-    next[index] = (next[index] + delta + 10) % 10;
+    next[i] = digit;
     onChange(next.join(""));
+    if (digit && i < 3) inputRefs.current[i + 1]?.focus();
   }
 
   return (
-    <div className="flex justify-center gap-3 my-4">
-      {digits.map((digit, i) => (
-        <div key={i} className="flex flex-col items-center gap-1">
-          <button
-            onClick={() => adjust(i, 1)}
-            className="w-14 h-10 text-amber-400 text-xl bg-[#1a1828] border border-amber-800/50 rounded-lg hover:bg-[#221e36] active:scale-95 transition-all select-none"
-            aria-label="Op"
-          >
-            ▲
-          </button>
-          <div className="w-14 h-14 flex items-center justify-center bg-[#14131f] border-2 border-amber-700 rounded-xl text-3xl font-bold text-amber-300 tabular-nums">
-            {digit}
-          </div>
-          <button
-            onClick={() => adjust(i, -1)}
-            className="w-14 h-10 text-amber-400 text-xl bg-[#1a1828] border border-amber-800/50 rounded-lg hover:bg-[#221e36] active:scale-95 transition-all select-none"
-            aria-label="Ned"
-          >
-            ▼
-          </button>
-        </div>
-      ))}
+    <div className="flex flex-col items-center gap-3 my-4">
+      <p className="text-xs text-[#6b6380] tracking-widest uppercase">Indtast koden</p>
+      <div className="flex gap-3">
+        {[0, 1, 2, 3].map((i) => (
+          <input
+            key={i}
+            ref={(el) => { inputRefs.current[i] = el; }}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={1}
+            value={digits[i] ?? ""}
+            onChange={(e) => handleChange(i, e.target.value)}
+            onKeyDown={(e) => handleKey(i, e)}
+            onFocus={(e) => e.target.select()}
+            className="w-16 h-16 text-center text-3xl font-bold tabular-nums bg-[#14131f] border-2 border-amber-700 focus:border-amber-400 rounded-xl text-amber-300 outline-none transition-colors caret-amber-400"
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -524,12 +539,13 @@ export default function GameClient({
             )}
           </div>
         ) : task.answer_type === "combination_lock" ? (
-          /* Combination lock */
+          /* PIN input */
           <div className="mb-6">
-            <CombinationLock value={lockValue} onChange={setLockValue} />
+            <PinInput value={lockValue} onChange={(v) => { setLockValue(v); if (answerState === "wrong") setAnswerState("idle"); }} />
             <button
               onClick={() => handleCheckAnswer(lockValue)}
-              className="w-full mt-2 bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
+              disabled={lockValue.replace(/\D/g, "").length < 4}
+              className="w-full mt-2 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/40 disabled:text-amber-800 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
             >
               Lås op
             </button>
