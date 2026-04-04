@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { getCityImage } from "@/lib/locationImages";
 
 type City = {
@@ -14,18 +15,45 @@ type City = {
 export default function CityCard({ city }: { city: City }) {
   const [imgError, setImgError] = useState(false);
   const imgSrc = getCityImage(city.name, city.image_url);
+  const shouldReduce = useReducedMotion();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [parallaxY, setParallaxY] = useState(0);
+
+  useEffect(() => {
+    if (shouldReduce) return;
+    function onScroll() {
+      if (!cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      // Progress: 0 when bottom enters viewport, 1 when top leaves
+      const progress = 1 - (rect.bottom / (viewH + rect.height));
+      setParallaxY(progress * 28); // max 28px shift
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [shouldReduce]);
 
   return (
     <Link href={`/city/${city.id}`}>
-      <div className="group relative overflow-hidden rounded-xl border border-amber-900/40 hover:border-amber-500/70 transition-all duration-200 cursor-pointer">
-        {/* Background image */}
-        <div className="relative h-44 w-full bg-[#1a1828]">
+      <motion.div
+        ref={cardRef}
+        className="group relative overflow-hidden rounded-xl border border-amber-900/40 hover:border-amber-500/70 transition-colors duration-200 cursor-pointer"
+        whileHover={shouldReduce ? undefined : { scale: 1.015 }}
+        transition={{ duration: 0.2 }}
+      >
+        {/* Background image with parallax */}
+        <div className="relative h-44 w-full bg-[#1a1828] overflow-hidden">
           {!imgError && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={imgSrc}
               alt={city.name}
               className="absolute inset-0 w-full h-full object-cover"
+              style={{
+                transform: `translateY(${parallaxY}px) scale(1.12)`,
+                transformOrigin: "center center",
+              }}
               onError={() => setImgError(true)}
             />
           )}
@@ -43,7 +71,7 @@ export default function CityCard({ city }: { city: City }) {
             <p className="text-[#a09880] text-sm leading-relaxed">{city.description}</p>
           )}
         </div>
-      </div>
+      </motion.div>
     </Link>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
+import { motion, useReducedMotion } from "framer-motion";
 import type { Task } from "./GameClient";
 import { getLocationImage } from "@/lib/locationImages";
 
@@ -44,11 +45,14 @@ type Props = {
 };
 
 export default function NavigationView({ task, onArrived, onSkip }: Props) {
+  const shouldReduce = useReducedMotion();
   const [playerPos, setPlayerPos] = useState<{ lat: number; lon: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [heading, setHeading] = useState<number>(0); // degrees from north
   const [orientationGranted, setOrientationGranted] = useState(false);
   const [needsOrientationPermission, setNeedsOrientationPermission] = useState(false);
+  const [displayedDistance, setDisplayedDistance] = useState<number | null>(null);
+  const distanceAnimRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Geolocation watch
   useEffect(() => {
@@ -110,6 +114,37 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
 
   const distance =
     playerPos ? haversine(playerPos.lat, playerPos.lon, task.latitude, task.longitude) : null;
+
+  // Animate displayed distance toward actual distance
+  useEffect(() => {
+    if (shouldReduce || distance === null) {
+      setDisplayedDistance(distance);
+      return;
+    }
+    if (displayedDistance === null) {
+      setDisplayedDistance(distance);
+      return;
+    }
+    const diff = distance - displayedDistance;
+    if (Math.abs(diff) < 1) return;
+    const steps = 12;
+    let step = 0;
+    if (distanceAnimRef.current) clearInterval(distanceAnimRef.current);
+    distanceAnimRef.current = setInterval(() => {
+      step++;
+      setDisplayedDistance((prev) => {
+        if (prev === null) return distance;
+        return prev + diff / steps;
+      });
+      if (step >= steps) {
+        clearInterval(distanceAnimRef.current!);
+        setDisplayedDistance(distance);
+      }
+    }, 50);
+    return () => { if (distanceAnimRef.current) clearInterval(distanceAnimRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [distance, shouldReduce]);
+
   const bearing =
     playerPos ? getBearing(playerPos.lat, playerPos.lon, task.latitude, task.longitude) : 0;
   const needleRotation = bearing - heading;
@@ -146,14 +181,14 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
         <div className="bg-[#1a1828] border border-amber-900/40 rounded-xl px-5 py-4 text-center">
           {geoError ? (
             <p className="text-[#a09880] text-sm">{geoError}</p>
-          ) : distance === null ? (
+          ) : displayedDistance === null ? (
             <p className="text-[#6b6380] text-sm">Henter din placering…</p>
           ) : (
             <>
               <p className="text-3xl font-bold text-amber-300 tabular-nums">
-                {distance < 1000
-                  ? `${Math.round(distance)} m`
-                  : `${(distance / 1000).toFixed(1)} km`}
+                {displayedDistance < 1000
+                  ? `${Math.round(displayedDistance)} m`
+                  : `${(displayedDistance / 1000).toFixed(1)} km`}
               </p>
               <p className="text-[#a09880] text-sm mt-1">fra {task.location_name}</p>
               {isNearby && (
@@ -193,7 +228,12 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
               Aktivér kompas (kræver tilladelse)
             </button>
           ) : (
-            <div className="relative w-36 h-36">
+            <motion.div
+              className="relative w-36 h-36"
+              initial={shouldReduce ? false : { opacity: 0, rotate: -30, scale: 0.85 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            >
               {/* Compass ring */}
               <svg viewBox="0 0 144 144" className="w-full h-full">
                 {/* Outer ring */}
@@ -246,7 +286,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
                   />
                 </svg>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
 

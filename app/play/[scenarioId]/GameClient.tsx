@@ -3,8 +3,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import NavigationView from "./NavigationView";
 import QRShare from "./QRShare";
+import GoldRain from "./GoldRain";
+import TaskTransition from "./TaskTransition";
 import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/sounds";
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
@@ -349,6 +352,13 @@ export default function GameClient({
   const [finalTime, setFinalTime] = useState(0);
   const [copied, setCopied] = useState(false);
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
+  // Animation states
+  const [showGoldRain, setShowGoldRain] = useState(false);
+  const [transitionActive, setTransitionActive] = useState(false);
+  const [transitionTitle, setTransitionTitle] = useState("");
+  const [transitionTaskNumber, setTransitionTaskNumber] = useState(1);
+  const shouldReduce = useReducedMotion();
+  const answerAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -389,14 +399,23 @@ export default function GameClient({
   }, [teamName, scenario.id]);
 
   const fireConfetti = useCallback(() => {
-    const end = Date.now() + 3000;
-    const colors = ["#f59e0b", "#fbbf24", "#fde68a", "#ffffff", "#d97706"];
+    if (shouldReduce) return;
+    const colors = ["#f59e0b", "#fbbf24", "#fde68a", "#ffffff", "#d97706", "#f97316", "#34d399"];
+    // Wave 1 – burst from center top
+    confetti({ particleCount: 80, spread: 100, origin: { x: 0.5, y: 0.1 }, colors, startVelocity: 45 });
+    // Wave 2 – from sides
+    setTimeout(() => {
+      confetti({ particleCount: 50, angle: 60, spread: 70, origin: { x: 0 }, colors, startVelocity: 55 });
+      confetti({ particleCount: 50, angle: 120, spread: 70, origin: { x: 1 }, colors, startVelocity: 55 });
+    }, 400);
+    // Wave 3 – lingering stream
+    const end = Date.now() + 2500;
     (function frame() {
-      confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors });
-      confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors });
+      confetti({ particleCount: 4, angle: 60, spread: 50, origin: { x: 0 }, colors });
+      confetti({ particleCount: 4, angle: 120, spread: 50, origin: { x: 1 }, colors });
       if (Date.now() < end) requestAnimationFrame(frame);
     })();
-  }, []);
+  }, [shouldReduce]);
 
   function saveActiveGame(name: string, index: number, hints = totalHints) {
     localStorage.setItem(ACTIVE_GAME_KEY, JSON.stringify({
@@ -486,6 +505,11 @@ export default function GameClient({
     } else {
       playDing();
       const nextIndex = currentIndex + 1;
+      const nextTask = tasks[nextIndex];
+      // Show transition overlay (state changes happen underneath it)
+      setTransitionTitle(nextTask.title);
+      setTransitionTaskNumber(nextIndex + 1);
+      setTransitionActive(true);
       saveActiveGame(teamName!, nextIndex);
       setCurrentIndex(nextIndex);
       setShowNavigation(true);
@@ -510,9 +534,31 @@ export default function GameClient({
     if (isMatch) {
       setAnswerState("correct");
       playCorrect();
+      // Green ring + gold rain
+      if (!shouldReduce) {
+        const el = answerAreaRef.current;
+        if (el) {
+          el.classList.remove("correct-ring");
+          void el.offsetWidth;
+          el.classList.add("correct-ring");
+          setTimeout(() => el.classList.remove("correct-ring"), 900);
+        }
+        setShowGoldRain(true);
+        setTimeout(() => setShowGoldRain(false), 2500);
+      }
     } else {
       setAnswerState("wrong");
       playWrong();
+      // Shake animation
+      if (!shouldReduce) {
+        const el = answerAreaRef.current;
+        if (el) {
+          el.classList.remove("answer-shake");
+          void el.offsetWidth;
+          el.classList.add("answer-shake");
+          setTimeout(() => el.classList.remove("answer-shake"), 500);
+        }
+      }
     }
   }
 
@@ -551,10 +597,22 @@ export default function GameClient({
 
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center py-12">
-        <div className="text-6xl mb-4">🏆</div>
-        <h1 className="text-3xl font-bold text-amber-400 mb-1 tracking-wide">
+        <motion.div
+          className="text-6xl mb-4"
+          initial={shouldReduce ? false : { scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 12, delay: 0.2 }}
+        >
+          🏆
+        </motion.div>
+        <motion.h1
+          className="text-3xl font-bold text-amber-400 mb-1 tracking-wide"
+          initial={shouldReduce ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+        >
           Mysteriet er løst!
-        </h1>
+        </motion.h1>
         <p className="text-amber-600 text-sm tracking-widest uppercase mb-1">{scenario.title}</p>
         <p className="text-[#a09880] text-base mb-8">{teamName}</p>
 
@@ -658,6 +716,14 @@ export default function GameClient({
   }
 
   return (
+    <>
+    <GoldRain active={showGoldRain} />
+    <TaskTransition
+      active={transitionActive}
+      title={transitionTitle}
+      taskNumber={transitionTaskNumber}
+      onComplete={() => setTransitionActive(false)}
+    />
     <div className="min-h-screen flex flex-col">
       {/* Sticky header */}
       <header className="sticky top-0 z-10 bg-[#0f0e17]/95 backdrop-blur border-b border-amber-900/30 px-4 pt-4 pb-3">
@@ -727,6 +793,7 @@ export default function GameClient({
         </div>
 
         {/* Answer area */}
+        <div ref={answerAreaRef}>
         {taskSolved && answerState !== "correct" ? null : answerState === "correct" ? (
           <div className="bg-[#1a2818] border border-green-800/50 rounded-xl p-5 mb-6">
             <p className="text-green-400 font-semibold text-base mb-2">✓ Korrekt svar!</p>
@@ -853,23 +920,27 @@ export default function GameClient({
             </button>
           </div>
         )}
+        </div>{/* close answerAreaRef */}
 
         {/* Hints */}
         {hints.length > 0 && !taskSolved && (
           <div className="mb-6">
-            {hintsShown > 0 && (
-              <div className="flex flex-col gap-2 mb-3">
-                {hints.slice(0, hintsShown).map((hint, i) => (
-                  <div
-                    key={i}
-                    className="bg-[#1a1828] border border-amber-900/30 rounded-lg px-4 py-3 text-[#a09880] text-sm"
-                  >
+            <AnimatePresence initial={false}>
+              {hints.slice(0, hintsShown).map((hint, i) => (
+                <motion.div
+                  key={i}
+                  initial={shouldReduce ? false : { opacity: 0, y: -10, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className="mb-2 overflow-hidden"
+                >
+                  <div className="bg-[#1a1828] border border-amber-900/30 rounded-lg px-4 py-3 text-[#a09880] text-sm hint-glow">
                     <span className="text-amber-700 font-semibold">Hint {i + 1}: </span>
                     {hint}
                   </div>
-                ))}
-              </div>
-            )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {canShowMoreHints && (
               <button
                 onClick={handleShowHint}
@@ -893,5 +964,6 @@ export default function GameClient({
         </div>{/* close px-4 py-5 */}
       </main>
     </div>
+    </>
   );
 }

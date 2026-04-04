@@ -11,6 +11,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* ── Map marker pulse ── */
 @keyframes pulse-ring {
   0%   { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
   70%  { box-shadow: 0 0 0 12px rgba(59, 130, 246, 0); }
@@ -18,6 +19,67 @@ body {
 }
 .player-marker-dot {
   animation: pulse-ring 2s ease-out infinite;
+}
+
+/* ── Wrong answer shake ── */
+@keyframes answer-shake {
+  0%, 100% { transform: translateX(0); }
+  18%  { transform: translateX(-9px); }
+  36%  { transform: translateX(9px); }
+  54%  { transform: translateX(-6px); }
+  72%  { transform: translateX(6px); }
+  90%  { transform: translateX(-2px); }
+}
+.answer-shake {
+  animation: answer-shake 0.45s ease-out;
+}
+
+/* ── Correct answer green ring ── */
+@keyframes correct-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); }
+  60%  { box-shadow: 0 0 0 22px rgba(74, 222, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+.correct-ring {
+  animation: correct-ring 0.85s ease-out;
+}
+
+/* ── Gold rain particle ── */
+@keyframes gold-fall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  85%  { opacity: 0.7; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+}
+.gold-particle {
+  position: fixed;
+  pointer-events: none;
+  animation-name: gold-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  z-index: 9999;
+}
+
+/* ── Hint slide-down reveal ── */
+@keyframes hint-slide-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hint-enter {
+  animation: hint-slide-down 0.35s ease-out forwards;
+}
+.hint-glow {
+  box-shadow: 0 0 16px 2px rgba(245, 158, 11, 0.13);
+}
+
+/* ── prefers-reduced-motion: disable all custom animations ── */
+@media (prefers-reduced-motion: reduce) {
+  .answer-shake,
+  .correct-ring,
+  .hint-enter,
+  .gold-particle {
+    animation: none !important;
+    opacity: 1 !important;
+  }
 }
 
 /* Override Leaflet default styles for dark theme */
