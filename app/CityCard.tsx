@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 const CITY_IMAGES: Record<string, string> = {
-  aarhus: "https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=800&q=80",
+  aarhus: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
 };
 
 function getCityImage(name: string, imageUrl: string | null): string {
