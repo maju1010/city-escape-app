@@ -265,6 +265,13 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
           </button>
 
           <button
+            onClick={onArrived}
+            className="w-full py-3 rounded-xl border border-amber-600 text-amber-500 hover:bg-amber-600/10 font-semibold text-base transition-all"
+          >
+            Jeg er fremme alligevel →
+          </button>
+
+          <button
             onClick={onSkip}
             className="text-center text-[#4a4560] hover:text-amber-800 text-sm underline underline-offset-2 transition-colors py-1"
           >
