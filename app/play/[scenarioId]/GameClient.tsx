@@ -40,7 +40,7 @@ export type Task = {
   narrative_intro: string;
   question: string;
   answer: string;
-  answer_type: "text" | "photo" | "multiple_choice" | "combination_lock";
+  answer_type: "text" | "photo" | "multiple_choice" | "combination_lock" | "word_scramble";
   choices: string | null;
   narrative_reward: string;
   hint1: string;
@@ -175,6 +175,124 @@ function DrumLock({ value, onChange }: { value: string; onChange: (v: string) =>
   );
 }
 
+// ── Word scramble ──
+function deterministicScramble(word: string): string {
+  const upper = word.toUpperCase().replace(/\s/g, "");
+  const chars = upper.split("");
+  let s = chars.reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  for (let i = chars.length - 1; i > 0; i--) {
+    s = (Math.imul(s, 1664525) + 1013904223) | 0;
+    const j = Math.abs(s) % (i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  const result = chars.join("");
+  // Ensure it's actually different
+  return result === upper ? chars.reverse().join("") : result;
+}
+
+function WordScramble({
+  answer,
+  scrambled,
+  answerState,
+  onCheck,
+  onReset,
+}: {
+  answer: string;
+  scrambled: string;
+  answerState: "idle" | "correct" | "wrong";
+  onCheck: (v: string) => void;
+  onReset: () => void;
+}) {
+  const letters = scrambled.toUpperCase().split("");
+  const [selected, setSelected] = useState<number[]>([]);
+
+  function pick(i: number) {
+    if (selected.includes(i)) return;
+    setSelected((s) => [...s, i]);
+    onReset();
+  }
+
+  function deleteLast() {
+    setSelected((s) => s.slice(0, -1));
+    onReset();
+  }
+
+  function check() {
+    const word = selected.map((i) => letters[i]).join("");
+    onCheck(word);
+  }
+
+  const built = selected.map((i) => ({ letter: letters[i], idx: i }));
+
+  return (
+    <div className="mb-6">
+      {/* Scrambled letter pool */}
+      <p className="text-xs text-[#6b6380] tracking-widest uppercase text-center mb-3">
+        Klik bogstaverne i rigtig rækkefølge
+      </p>
+      <div className="flex flex-wrap justify-center gap-2 mb-5">
+        {letters.map((letter, i) => {
+          const used = selected.includes(i);
+          return (
+            <button
+              key={i}
+              onClick={() => pick(i)}
+              disabled={used}
+              className={`w-12 h-12 text-xl font-bold rounded-xl border-2 transition-all select-none ${
+                used
+                  ? "border-transparent text-[#2a2840] bg-[#14131f] cursor-default"
+                  : "border-amber-700 text-amber-300 bg-[#1a1828] hover:border-amber-400 hover:bg-amber-900/20 active:scale-90"
+              }`}
+            >
+              {used ? "" : letter}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Built word */}
+      <div className="flex justify-center gap-2 mb-4 min-h-[3.5rem] flex-wrap">
+        {built.length === 0 ? (
+          <p className="text-[#3a3560] text-sm self-center">— — — —</p>
+        ) : (
+          built.map(({ letter }, i) => (
+            <div
+              key={i}
+              className="w-12 h-12 flex items-center justify-center bg-[#14131f] border-2 border-amber-600 rounded-xl text-amber-300 text-xl font-bold"
+            >
+              {letter}
+            </div>
+          ))
+        )}
+      </div>
+
+      {answerState === "wrong" && (
+        <p className="text-red-400 text-sm text-center mb-3">Forkert – prøv igen</p>
+      )}
+
+      <div className="flex gap-3">
+        <button
+          onClick={deleteLast}
+          disabled={selected.length === 0}
+          className="flex-1 py-3 rounded-xl border border-amber-900/40 hover:border-amber-700 text-amber-800 hover:text-amber-600 font-semibold text-base transition-all disabled:opacity-30"
+        >
+          ← Slet
+        </button>
+        <button
+          onClick={check}
+          disabled={selected.length === 0}
+          className="flex-1 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base transition-all disabled:opacity-30"
+        >
+          Tjek svar
+        </button>
+      </div>
+      <p className="text-center text-[#4a4560] text-xs mt-3">
+        Svaret er {answer.length} bogstaver
+      </p>
+    </div>
+  );
+}
+
 export default function GameClient({
   scenario,
   tasks,
@@ -197,6 +315,7 @@ export default function GameClient({
   const [elapsed, setElapsed] = useState(0);
   const [finalTime, setFinalTime] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -315,12 +434,21 @@ export default function GameClient({
       localStorage.removeItem(ACTIVE_GAME_KEY);
       setFinished(true);
       setTimeout(() => { fireConfetti(); playFanfare(); }, 300);
-      // Save to leaderboard (fire and forget)
-      void supabase.from("leaderboard").insert({
+      // Save to leaderboard
+      const leaderboardPayload = {
         team_name: teamName,
         scenario_id: scenario.id,
         completion_time_seconds: secs,
         hints_used: totalHints,
+      };
+      console.log("[Leaderboard] Inserting:", leaderboardPayload);
+      supabase.from("leaderboard").insert(leaderboardPayload).then(({ error: lbErr }) => {
+        if (lbErr) {
+          console.error("[Leaderboard] Insert error:", lbErr);
+          setLeaderboardError(`${lbErr.message} (kode: ${lbErr.code})`);
+        } else {
+          console.log("[Leaderboard] Insert success");
+        }
       });
     } else {
       playDing();
@@ -440,6 +568,13 @@ export default function GameClient({
           >
             Se leaderboard →
           </Link>
+
+          {leaderboardError && (
+            <div className="bg-red-900/20 border border-red-800/40 rounded-xl p-4">
+              <p className="text-red-400 text-xs font-semibold mb-1">Leaderboard-fejl</p>
+              <p className="text-red-400 text-xs font-mono">{leaderboardError}</p>
+            </div>
+          )}
 
           <Link
             href="/"
@@ -613,6 +748,15 @@ export default function GameClient({
               <p className="text-red-400 text-sm mt-3 text-center">Forkert kode – prøv igen.</p>
             )}
           </div>
+        ) : task.answer_type === "word_scramble" ? (
+          /* Word scramble */
+          <WordScramble
+            answer={task.answer}
+            scrambled={task.choices || deterministicScramble(task.answer)}
+            answerState={answerState}
+            onCheck={handleCheckAnswer}
+            onReset={() => setAnswerState("idle")}
+          />
         ) : task.answer_type === "photo" ? (
           /* Photo */
           <div className="mb-6">
