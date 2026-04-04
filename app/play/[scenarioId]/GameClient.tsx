@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
+import NavigationView from "./NavigationView";
+import QRShare from "./QRShare";
+import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/sounds";
 
 export type Task = {
   id: string;
@@ -20,6 +23,7 @@ export type Task = {
   hint1: string;
   hint2: string;
   hint3: string;
+  image_url: string | null;
 };
 
 export type Scenario = {
@@ -96,6 +100,7 @@ export default function GameClient({
   const [teamInput, setTeamInput] = useState("");
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showNavigation, setShowNavigation] = useState(true);
   const [textAnswer, setTextAnswer] = useState("");
   const [answerState, setAnswerState] = useState<"idle" | "correct" | "wrong">("idle");
   const [hintsShown, setHintsShown] = useState(0);
@@ -153,12 +158,13 @@ export default function GameClient({
 
   if (!teamName) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center px-6">
+      <main className="min-h-screen flex flex-col items-center px-6 py-12">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <p className="text-amber-700 text-xs tracking-widest uppercase mb-2">{scenario.title}</p>
             <h1 className="text-2xl font-bold text-amber-300">Hvad hedder jeres hold?</h1>
           </div>
+
           <input
             type="text"
             value={teamInput}
@@ -174,9 +180,12 @@ export default function GameClient({
           >
             Start spillet →
           </button>
-          <p className="text-center text-[#4a4560] text-xs mt-4">
-            Lad feltet stå tomt for at bruge "Holdet"
+          <p className="text-center text-[#4a4560] text-xs mt-3">
+            Lad feltet stå tomt for at bruge &ldquo;Holdet&rdquo;
           </p>
+
+          {/* QR code — secondary section */}
+          <QRShare scenarioId={scenario.id} />
         </div>
       </main>
     );
@@ -194,9 +203,11 @@ export default function GameClient({
       localStorage.removeItem(key);
       localStorage.removeItem(getTeamKey(scenario.id));
       setFinished(true);
-      setTimeout(() => fireConfetti(), 300);
+      setTimeout(() => { fireConfetti(); playFanfare(); }, 300);
     } else {
+      playDing();
       setCurrentIndex((i) => i + 1);
+      setShowNavigation(true);
       setTextAnswer("");
       setAnswerState("idle");
       setHintsShown(0);
@@ -210,13 +221,16 @@ export default function GameClient({
     const given = (givenOverride ?? textAnswer).trim().toLowerCase();
     if (given === correct) {
       setAnswerState("correct");
+      playCorrect();
     } else {
       setAnswerState("wrong");
+      playWrong();
     }
   }
 
   function handleShowHint() {
     if (hintsShown < 3) {
+      playHint();
       setHintsShown((h) => h + 1);
       setTotalHints((t) => t + 1);
     }
@@ -288,6 +302,41 @@ export default function GameClient({
 
   const taskSolved = answerState === "correct" || (task.answer_type === "photo" && photoUploaded);
 
+  // Show navigation if task has coordinates and navigation not yet dismissed
+  const hasCoords = !!(task.latitude && task.longitude);
+  if (showNavigation && hasCoords) {
+    return (
+      <>
+        {/* Sticky header also on navigation screen */}
+        <header className="sticky top-0 z-10 bg-[#0f0e17]/95 backdrop-blur border-b border-amber-900/30 px-4 pt-4 pb-3">
+          <div className="max-w-lg mx-auto">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-amber-300 font-semibold text-base truncate max-w-[60%]">{teamName}</span>
+              <div className="bg-[#1a1828] border border-amber-900/40 rounded-lg px-3 py-1.5 text-amber-400 font-mono text-base tabular-nums">
+                {formatTime(elapsed)}
+              </div>
+            </div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs text-[#6b6380] tracking-wider uppercase truncate mr-3">{scenario.title}</span>
+              <span className="text-xs text-amber-700 shrink-0">{currentIndex + 1} / {tasks.length}</span>
+            </div>
+            <div className="w-full h-2 bg-[#2a2840] rounded-full overflow-hidden">
+              <div
+                className="h-2 bg-gradient-to-r from-amber-700 to-amber-400 rounded-full transition-all duration-500"
+                style={{ width: `${((currentIndex + 1) / tasks.length) * 100}%` }}
+              />
+            </div>
+          </div>
+        </header>
+        <NavigationView
+          task={task}
+          onArrived={() => setShowNavigation(false)}
+          onSkip={() => setShowNavigation(false)}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Sticky header */}
@@ -319,7 +368,21 @@ export default function GameClient({
       </header>
 
       {/* Main content */}
-      <main className="flex-1 px-4 py-6 max-w-lg mx-auto w-full">
+      <main className="flex-1 max-w-lg mx-auto w-full">
+        {/* Location image */}
+        {(task.image_url || task.location_name) && (
+          <div className="relative h-36 w-full overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={task.image_url || `https://source.unsplash.com/800x300/?${encodeURIComponent(task.location_name)}`}
+              alt={task.location_name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0f0e17]" />
+          </div>
+        )}
+
+        <div className="px-4 py-5">
         <h2 className="text-xl font-bold text-amber-300 mb-4">{task.title}</h2>
 
         {/* Narrative intro */}
@@ -500,6 +563,7 @@ export default function GameClient({
             {currentIndex + 1 >= tasks.length ? "Se resultat 🏆" : "Næste opgave →"}
           </button>
         )}
+        </div>{/* close px-4 py-5 */}
       </main>
     </div>
   );

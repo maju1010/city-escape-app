@@ -10,3 +10,26 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  70%  { box-shadow: 0 0 0 12px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+.player-marker-dot {
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+/* Override Leaflet default styles for dark theme */
+.leaflet-container {
+  background: #0f0e17 !important;
+  border-radius: 0.75rem;
+}
+.leaflet-control-attribution {
+  background: rgba(15, 14, 23, 0.7) !important;
+  color: #6b6380 !important;
+  font-size: 9px !important;
+}
+.leaflet-control-attribution a {
+  color: #6b6380 !important;
+}
