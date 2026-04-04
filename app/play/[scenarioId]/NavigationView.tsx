@@ -140,7 +140,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
         </div>
       </div>
 
-      <div className="flex-1 px-4 py-5 max-w-lg mx-auto w-full flex flex-col gap-5">
+      <div className="flex-1 px-4 py-5 pb-20 max-w-lg mx-auto w-full flex flex-col gap-5">
         {/* Distance */}
         <div className="bg-[#1a1828] border border-amber-900/40 rounded-xl px-5 py-4 text-center">
           {geoError ? (
@@ -270,14 +270,18 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
             )}
           </div>
 
-          <button
-            onClick={onSkip}
-            className="text-center text-[#4a4560] hover:text-amber-800 text-sm underline underline-offset-2 transition-colors py-1"
-          >
-            Spring navigation over
-          </button>
         </div>
       </div>
+    </div>
+
+    {/* Fixed skip button — always reachable on mobile */}
+    <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 pt-3 bg-gradient-to-t from-[#0f0e17] to-transparent pointer-events-none">
+      <button
+        onClick={onSkip}
+        className="pointer-events-auto text-[#4a4560] hover:text-amber-700 text-sm underline underline-offset-2 transition-colors px-4 py-2"
+      >
+        Spring navigation over
+      </button>
     </div>
   );
 }
