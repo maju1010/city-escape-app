@@ -251,24 +251,24 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
 
         {/* Buttons */}
         <div className="flex flex-col gap-3 mt-auto pb-4">
-          <button
-            onClick={onArrived}
-            disabled={!isNearby && !geoError}
-            className={`w-full py-4 rounded-xl font-semibold text-base transition-all ${
-              isNearby || geoError
-                ? "bg-amber-600 hover:bg-amber-500 text-[#0f0e17]"
-                : "bg-[#1a1828] border border-amber-900/30 text-[#4a4560] cursor-not-allowed"
-            }`}
-          >
-            {isNearby || geoError ? "Jeg er fremme →" : `Kom inden for 50 m (${distance !== null ? Math.round(distance) + " m" : "…"})`}
-          </button>
-
-          <button
-            onClick={onArrived}
-            className="w-full py-3 rounded-xl border border-amber-600 text-amber-500 hover:bg-amber-600/10 font-semibold text-base transition-all"
-          >
-            Jeg er fremme alligevel →
-          </button>
+          <div>
+            <button
+              onClick={onArrived}
+              disabled={!isNearby && !geoError}
+              className={`w-full py-4 rounded-xl font-semibold text-base transition-all ${
+                isNearby || geoError
+                  ? "bg-amber-600 hover:bg-amber-500 text-[#0f0e17]"
+                  : "bg-[#1a1828] border border-amber-900/30 text-[#4a4560] cursor-not-allowed"
+              }`}
+            >
+              Jeg er fremme →
+            </button>
+            {!isNearby && !geoError && (
+              <p className="text-center text-[#4a4560] text-xs mt-2">
+                Kom tættere på for at låse op
+              </p>
+            )}
+          </div>
 
           <button
             onClick={onSkip}
