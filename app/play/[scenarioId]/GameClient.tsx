@@ -137,10 +137,21 @@ export default function GameClient({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Load saved team name
+  // Restore saved team name and progress
   useEffect(() => {
-    const saved = localStorage.getItem(getTeamKey(scenario.id));
-    if (saved) setTeamName(saved);
+    const savedTeam = localStorage.getItem(getTeamKey(scenario.id));
+    if (!savedTeam) return;
+    setTeamName(savedTeam);
+    try {
+      const raw = localStorage.getItem(ACTIVE_GAME_KEY);
+      if (raw) {
+        const state = JSON.parse(raw);
+        if (state.scenarioId === scenario.id) {
+          setCurrentIndex(state.currentIndex ?? 0);
+          setTotalHints(state.totalHints ?? 0);
+        }
+      }
+    } catch { /* ignore */ }
   }, [scenario.id]);
 
   // Timer
@@ -172,13 +183,14 @@ export default function GameClient({
     })();
   }, []);
 
-  function saveActiveGame(name: string, index: number) {
+  function saveActiveGame(name: string, index: number, hints = totalHints) {
     localStorage.setItem(ACTIVE_GAME_KEY, JSON.stringify({
       scenarioId: scenario.id,
       scenarioTitle: scenario.title,
       currentIndex: index,
       totalTasks: tasks.length,
       teamName: name,
+      totalHints: hints,
     }));
   }
 
