@@ -1,30 +1,32 @@
-/** Hardkodede Unsplash-billeder til kendte lokationer og byer */
+/** Billeder til kendte lokationer og byer — Picsum bruges som pålidelig kilde */
+
+// Picsum IDs: https://picsum.photos/id/[ID]/800/400
+// Hvert ID giver et fast, smukt fotografi
 
 export const CITY_IMAGES: Record<string, string> = {
-  aarhus: "https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=800&q=80",
+  // Aarhus: bybillede med flod/arkitektur
+  aarhus: "https://picsum.photos/id/1040/800/400",
 };
 
 export const LOCATION_IMAGES: Record<string, string> = {
-  "aarhus rådhus":
-    "https://images.unsplash.com/photo-1588013273468-3c64e3e5f5e3?w=800&q=80",
-  "aarhus domkirke":
-    "https://images.unsplash.com/photo-1548625149-720fb7acd4fc?w=800&q=80",
-  "aarhus å":
-    "https://images.unsplash.com/photo-1571406252241-db0280bd36cd?w=800&q=80",
-  "mejlgade / latinske kvarter":
-    "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&q=80",
-  "mejlgade":
-    "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&q=80",
-  "latinske kvarter":
-    "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&q=80",
-  "den gamle by":
-    "https://images.unsplash.com/photo-1548625149-720fb7acd4fc?w=800&q=80",
-  "clemens torv":
-    "https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=800&q=80",
-  "aarhus teater":
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
-  "mølleparken":
-    "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&q=80",
+  // Aarhus Rådhus: klassisk bygning
+  "aarhus rådhus":       "https://picsum.photos/id/164/800/400",
+  // Aarhus Domkirke: kirke/historisk
+  "aarhus domkirke":     "https://picsum.photos/id/218/800/400",
+  // Aarhus Å: å/vand/natur
+  "aarhus å":            "https://picsum.photos/id/15/800/400",
+  // Mejlgade / Latinske Kvarter: gadekultur
+  "mejlgade / latinske kvarter": "https://picsum.photos/id/429/800/400",
+  "mejlgade":            "https://picsum.photos/id/429/800/400",
+  "latinske kvarter":    "https://picsum.photos/id/429/800/400",
+  // Den Gamle By: historisk miljø
+  "den gamle by":        "https://picsum.photos/id/392/800/400",
+  // Clemens Torv: byplads
+  "clemens torv":        "https://picsum.photos/id/401/800/400",
+  // Aarhus Teater: teater/kultur
+  "aarhus teater":       "https://picsum.photos/id/158/800/400",
+  // Mølleparken: park/natur
+  "mølleparken":         "https://picsum.photos/id/28/800/400",
 };
 
 export function getCityImage(name: string, imageUrl: string | null): string {
