@@ -7,6 +7,28 @@ import NavigationView from "./NavigationView";
 import QRShare from "./QRShare";
 import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/sounds";
 
+function TaskImage({ locationName, imageUrl }: { locationName: string; imageUrl: string | null }) {
+  const [error, setError] = useState(false);
+  if (!locationName && !imageUrl) return null;
+  const src =
+    imageUrl ||
+    `https://picsum.photos/seed/${encodeURIComponent(locationName)}/800/400`;
+  return (
+    <div className="relative h-36 w-full overflow-hidden bg-[#1a1828]">
+      {!error && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt={locationName}
+          className="w-full h-full object-cover"
+          onError={() => setError(true)}
+        />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0f0e17]" />
+    </div>
+  );
+}
+
 export type Task = {
   id: string;
   order_number: number;
@@ -370,17 +392,8 @@ export default function GameClient({
       {/* Main content */}
       <main className="flex-1 max-w-lg mx-auto w-full">
         {/* Location image */}
-        {(task.image_url || task.location_name) && (
-          <div className="relative h-36 w-full overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={task.image_url || `https://source.unsplash.com/800x300/?${encodeURIComponent(task.location_name)}`}
-              alt={task.location_name}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0f0e17]" />
-          </div>
-        )}
+        <TaskImage locationName={task.location_name} imageUrl={task.image_url} />
+
 
         <div className="px-4 py-5">
         <h2 className="text-xl font-bold text-amber-300 mb-4">{task.title}</h2>

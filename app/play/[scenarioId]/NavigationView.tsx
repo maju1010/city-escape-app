@@ -114,16 +114,24 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
   const needleRotation = bearing - heading;
   const isNearby = distance !== null && distance <= 50;
 
+  const [imgError, setImgError] = useState(false);
   const imgSrc =
     task.image_url ||
-    `https://source.unsplash.com/800x300/?${encodeURIComponent(task.location_name || "city street")}`;
+    `https://picsum.photos/seed/${encodeURIComponent(task.location_name || "city")}/800/400`;
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Location image */}
-      <div className="relative h-40 w-full overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imgSrc} alt={task.location_name} className="w-full h-full object-cover" />
+      <div className="relative h-40 w-full overflow-hidden bg-[#1a1828]">
+        {!imgError && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imgSrc}
+            alt={task.location_name}
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0f0e17]" />
         <div className="absolute bottom-3 left-4 right-4">
           <p className="text-amber-400 font-bold text-lg leading-tight drop-shadow">
