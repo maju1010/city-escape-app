@@ -289,9 +289,16 @@ export default function GameClient({
   }
 
   function handleCheckAnswer(givenOverride?: string) {
-    const correct = task.answer.trim().toLowerCase();
-    const given = (givenOverride ?? textAnswer).trim().toLowerCase();
-    if (given === correct) {
+    const given = (givenOverride ?? textAnswer).trim();
+    const correct = task.answer.trim();
+
+    // Combination lock: compare as integers so "93" matches "0093"
+    const isMatch =
+      task.answer_type === "combination_lock"
+        ? parseInt(given, 10) === parseInt(correct, 10)
+        : given.toLowerCase() === correct.toLowerCase();
+
+    if (isMatch) {
       setAnswerState("correct");
       playCorrect();
     } else {
