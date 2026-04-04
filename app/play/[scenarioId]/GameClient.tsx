@@ -6,6 +6,8 @@ import confetti from "canvas-confetti";
 import NavigationView from "./NavigationView";
 import QRShare from "./QRShare";
 import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/sounds";
+import { supabase } from "@/lib/supabase";
+import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
 
 function TaskImage({ locationName, imageUrl }: { locationName: string; imageUrl: string | null }) {
   const [error, setError] = useState(false);
@@ -171,10 +173,21 @@ export default function GameClient({
     })();
   }, []);
 
+  function saveActiveGame(name: string, index: number) {
+    localStorage.setItem(ACTIVE_GAME_KEY, JSON.stringify({
+      scenarioId: scenario.id,
+      scenarioTitle: scenario.title,
+      currentIndex: index,
+      totalTasks: tasks.length,
+      teamName: name,
+    }));
+  }
+
   // ── Team name screen ──
   function handleStartGame() {
     const name = teamInput.trim() || "Holdet";
     localStorage.setItem(getTeamKey(scenario.id), name);
+    saveActiveGame(name, 0);
     setTeamName(name);
   }
 
@@ -215,20 +228,31 @@ export default function GameClient({
 
   const task = tasks[currentIndex];
 
-  function handleNextTask() {
+  async function handleNextTask() {
     if (currentIndex + 1 >= tasks.length) {
       if (timerRef.current) clearInterval(timerRef.current);
       const key = getStorageKey(scenario.id);
       const startTs = parseInt(localStorage.getItem(key) ?? "", 10);
       const secs = isNaN(startTs) ? elapsed : Math.floor((Date.now() - startTs) / 1000);
       setFinalTime(secs);
+      // Clean up localStorage
       localStorage.removeItem(key);
       localStorage.removeItem(getTeamKey(scenario.id));
+      localStorage.removeItem(ACTIVE_GAME_KEY);
       setFinished(true);
       setTimeout(() => { fireConfetti(); playFanfare(); }, 300);
+      // Save to leaderboard (fire and forget)
+      void supabase.from("leaderboard").insert({
+        team_name: teamName,
+        scenario_id: scenario.id,
+        completion_time_seconds: secs,
+        hints_used: totalHints,
+      });
     } else {
       playDing();
-      setCurrentIndex((i) => i + 1);
+      const nextIndex = currentIndex + 1;
+      saveActiveGame(teamName!, nextIndex);
+      setCurrentIndex(nextIndex);
       setShowNavigation(true);
       setTextAnswer("");
       setAnswerState("idle");
@@ -279,8 +303,12 @@ export default function GameClient({
   if (finished) {
     const minutes = Math.floor(finalTime / 60);
     const seconds = finalTime % 60;
+    const timeFormatted = `${minutes > 0 ? minutes + ":" : ""}${seconds.toString().padStart(2, "0")}`;
+    const whatsappText = `Kan I slå vores tid på ${timeFormatted} i ${scenario.title}? 🔍 city-escape-app.vercel.app`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
+
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center py-12">
         <div className="text-6xl mb-4">🏆</div>
         <h1 className="text-3xl font-bold text-amber-400 mb-1 tracking-wide">
           Mysteriet er løst!
@@ -288,7 +316,7 @@ export default function GameClient({
         <p className="text-amber-600 text-sm tracking-widest uppercase mb-1">{scenario.title}</p>
         <p className="text-[#a09880] text-base mb-8">{teamName}</p>
 
-        <div className="flex gap-4 mb-10">
+        <div className="flex gap-4 mb-8">
           <div className="bg-[#1a1828] border border-amber-900/40 rounded-xl px-6 py-4 text-center">
             <div className="text-2xl font-bold text-amber-300">
               {minutes > 0 ? `${minutes}m ` : ""}{seconds}s
@@ -301,23 +329,44 @@ export default function GameClient({
           </div>
         </div>
 
-        <p className="text-[#a09880] text-base leading-relaxed max-w-sm mb-10">
+        <p className="text-[#a09880] text-base leading-relaxed max-w-sm mb-8">
           Mysteriet er opklaret. Byen har ingen hemmeligheder for jer.
         </p>
 
-        <button
-          onClick={handleShare}
-          className="w-full max-w-xs bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors mb-4 text-base"
-        >
-          {copied ? "✓ Kopieret!" : "Del dit resultat"}
-        </button>
+        <div className="w-full max-w-xs flex flex-col gap-3">
+          {/* Primary: share */}
+          <button
+            onClick={handleShare}
+            className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
+          >
+            {copied ? "✓ Kopieret!" : "Del dit resultat"}
+          </button>
 
-        <Link
-          href="/"
-          className="text-amber-800 hover:text-amber-600 text-base underline underline-offset-2 transition-colors"
-        >
-          Tilbage til forsiden
-        </Link>
+          {/* WhatsApp challenge */}
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-2 bg-[#25D366]/10 border border-[#25D366]/40 hover:bg-[#25D366]/20 text-[#25D366] font-semibold py-4 rounded-xl transition-colors text-base"
+          >
+            <span>💬</span> Udfordr et andet hold
+          </a>
+
+          {/* Leaderboard */}
+          <Link
+            href={`/leaderboard/${scenario.id}`}
+            className="w-full text-center border border-amber-900/40 hover:border-amber-700 text-amber-700 hover:text-amber-500 font-semibold py-4 rounded-xl transition-colors text-base"
+          >
+            Se leaderboard →
+          </Link>
+
+          <Link
+            href="/"
+            className="text-[#4a4560] hover:text-amber-800 text-sm underline underline-offset-2 transition-colors py-1"
+          >
+            Tilbage til forsiden
+          </Link>
+        </div>
       </main>
     );
   }

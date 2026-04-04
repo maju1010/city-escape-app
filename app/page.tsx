@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import CityCard from "./CityCard";
+import ContinueBanner from "./ContinueBanner";
 
 type City = {
   id: string;
@@ -36,6 +37,8 @@ export default async function HomePage() {
       {!error && cities && cities.length === 0 && (
         <p className="text-[#a09880]">Ingen byer fundet.</p>
       )}
+
+      <ContinueBanner />
 
       <div className="w-full max-w-md flex flex-col gap-5">
         {(cities as City[])?.map((city) => (
