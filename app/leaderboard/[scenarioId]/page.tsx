@@ -2,6 +2,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 type Entry = {
   id: string;
   team_name: string;
@@ -37,7 +39,7 @@ export default async function LeaderboardPage({
 }) {
   const { scenarioId } = await params;
 
-  const [{ data: scenario }, { data: entries }] = await Promise.all([
+  const [{ data: scenario }, { data: entries, error: leaderboardError }] = await Promise.all([
     supabase
       .from("scenarios")
       .select("id, title")
@@ -75,6 +77,12 @@ export default async function LeaderboardPage({
 
       {/* Table */}
       <div className="w-full max-w-md">
+        {leaderboardError && (
+          <div className="bg-red-900/20 border border-red-800/40 rounded-xl p-4 mb-4">
+            <p className="text-red-400 text-xs font-mono">Fejl: {leaderboardError.message}</p>
+            <p className="text-red-600 text-xs mt-1">Kode: {leaderboardError.code}</p>
+          </div>
+        )}
         {(!entries || entries.length === 0) ? (
           <div className="bg-[#1a1828] border border-amber-900/30 rounded-xl p-8 text-center">
             <p className="text-[#6b6380] text-sm">Ingen resultater endnu.</p>
