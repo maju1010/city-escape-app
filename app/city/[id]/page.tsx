@@ -82,14 +82,14 @@ export default async function CityPage({
               </div>
 
               {scenario.intro && (
-                <p className="text-[#a09880] text-sm leading-relaxed mb-5 line-clamp-3">
+                <p className="text-[#a09880] text-base leading-relaxed mb-5">
                   {scenario.intro}
                 </p>
               )}
 
               <Link
                 href={`/play/${scenario.id}`}
-                className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-sm py-2.5 rounded-lg transition-colors"
+                className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base py-3 rounded-lg transition-colors"
               >
                 Start scenarie
               </Link>

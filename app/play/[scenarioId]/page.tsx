@@ -1,23 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
-import GameClient from "./GameClient";
-
-type Task = {
-  id: string;
-  order_number: number;
-  title: string;
-  location_name: string;
-  latitude: number;
-  longitude: number;
-  narrative_intro: string;
-  question: string;
-  answer: string;
-  answer_type: "text" | "photo";
-  narrative_reward: string;
-  hint1: string;
-  hint2: string;
-  hint3: string;
-};
+import GameClient, { type Task, type Scenario } from "./GameClient";
 
 export default async function PlayPage({
   params,
@@ -41,5 +24,5 @@ export default async function PlayPage({
 
   if (!scenario || !tasks) notFound();
 
-  return <GameClient scenario={scenario} tasks={tasks as Task[]} />;
+  return <GameClient scenario={scenario as Scenario} tasks={tasks as Task[]} />;
 }
