@@ -69,58 +69,106 @@ function getTeamKey(scenarioId: string) {
   return `city-escape-team-${scenarioId}`;
 }
 
-// ── PIN code component ──
-function PinInput({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const digits = value.padEnd(4, "").split("").slice(0, 4);
+// ── Drum combination lock ──
+const DRUM_H = 52; // height per digit slot in px
 
-  function handleKey(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace") {
-      e.preventDefault();
-      const next = [...digits];
-      if (next[i]) {
-        next[i] = "";
-        onChange(next.join(""));
-      } else if (i > 0) {
-        next[i - 1] = "";
-        onChange(next.join(""));
-        inputRefs.current[i - 1]?.focus();
-      }
-    }
-  }
+function DrumWheel({ digit, onChange }: { digit: number; onChange: (d: number) => void }) {
+  const [dragOffset, setDragOffset] = useState(0);
+  const dragging = useRef(false);
+  const startY = useRef(0);
 
-  function handleChange(i: number, raw: string) {
-    const digit = raw.replace(/\D/g, "").slice(-1);
-    const next = [...digits];
-    next[i] = digit;
-    onChange(next.join(""));
-    if (digit && i < 3) inputRefs.current[i + 1]?.focus();
+  function wrap(n: number) { return ((n % 10) + 10) % 10; }
+
+  function commit(raw: number) {
+    const steps = Math.round(-raw / DRUM_H);
+    if (steps !== 0) onChange(wrap(digit + steps));
+    setDragOffset(0);
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 my-4">
-      <p className="text-xs text-[#6b6380] tracking-widest uppercase">Indtast koden</p>
-      <div className="flex gap-3">
-        {[0, 1, 2, 3].map((i) => (
-          <input
-            key={i}
-            ref={(el) => { inputRefs.current[i] = el; }}
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={1}
-            value={digits[i] ?? ""}
-            onChange={(e) => handleChange(i, e.target.value)}
-            onKeyDown={(e) => handleKey(i, e)}
-            onFocus={(e) => e.target.select()}
-            className="w-16 h-16 text-center text-3xl font-bold tabular-nums bg-[#14131f] border-2 border-amber-700 focus:border-amber-400 rounded-xl text-amber-300 outline-none transition-colors caret-amber-400"
-          />
+    <div
+      className="relative overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      style={{ width: 56, height: DRUM_H * 3, touchAction: "none" }}
+      onPointerDown={(e) => {
+        dragging.current = true;
+        startY.current = e.clientY;
+        (e.currentTarget as Element).setPointerCapture(e.pointerId);
+      }}
+      onPointerMove={(e) => {
+        if (!dragging.current) return;
+        setDragOffset(e.clientY - startY.current);
+      }}
+      onPointerUp={() => { if (!dragging.current) return; dragging.current = false; commit(dragOffset); }}
+      onPointerCancel={() => { dragging.current = false; setDragOffset(0); }}
+      onWheel={(e) => { e.preventDefault(); onChange(wrap(digit + (e.deltaY > 0 ? 1 : -1))); }}
+    >
+      {/* Digit strip */}
+      <div
+        style={{
+          transform: `translateY(${dragOffset}px)`,
+          transition: dragOffset === 0 ? "transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94)" : "none",
+        }}
+      >
+        {([-2, -1, 0, 1, 2] as const).map((rel) => {
+          const d = wrap(digit + rel);
+          const isCenter = rel === 0;
+          const dist = Math.abs(rel);
+          return (
+            <div
+              key={rel}
+              style={{
+                position: "absolute",
+                top: (rel + 1) * DRUM_H,
+                width: "100%",
+                height: DRUM_H,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: isCenter ? "2.1rem" : dist === 1 ? "1.35rem" : "0.9rem",
+                fontWeight: "bold",
+                color: isCenter ? "#fbbf24" : dist === 1 ? "#92601a" : "#2e2a40",
+                opacity: isCenter ? 1 : dist === 1 ? 0.6 : 0.2,
+                transform: `perspective(130px) rotateX(${-rel * 30}deg)`,
+                transformOrigin: "center center",
+              }}
+            >
+              {d}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Center selection lines */}
+      <div
+        className="absolute inset-x-0 pointer-events-none"
+        style={{
+          top: DRUM_H,
+          height: DRUM_H,
+          borderTop: "1.5px solid #92400e",
+          borderBottom: "1.5px solid #92400e",
+          background: "rgba(146,64,14,0.06)",
+        }}
+      />
+    </div>
+  );
+}
+
+function DrumLock({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const numDigits = Math.max(value.replace(/\D/g, "").length || 4, 1);
+  const digits = value.padStart(numDigits, "0").split("").slice(0, numDigits).map(Number);
+
+  function setDigit(i: number, d: number) {
+    const next = [...digits];
+    next[i] = d;
+    onChange(next.join(""));
+  }
+
+  return (
+    <div className="flex justify-center my-5">
+      <div className="relative bg-[#0d0c17] border-2 border-amber-900/60 rounded-2xl px-5 py-3 flex gap-2 items-center shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
+        <div className="absolute inset-0 rounded-2xl bg-amber-900/5 pointer-events-none" />
+        {digits.map((d, i) => (
+          <DrumWheel key={i} digit={d} onChange={(v) => setDigit(i, v)} />
         ))}
       </div>
     </div>
@@ -546,13 +594,18 @@ export default function GameClient({
             )}
           </div>
         ) : task.answer_type === "combination_lock" ? (
-          /* PIN input */
+          /* Drum lock */
           <div className="mb-6">
-            <PinInput value={lockValue} onChange={(v) => { setLockValue(v); if (answerState === "wrong") setAnswerState("idle"); }} />
+            <p className="text-center text-xs text-[#6b6380] tracking-widest uppercase mb-1">
+              Træk op/ned for at dreje
+            </p>
+            <DrumLock
+              value={lockValue}
+              onChange={(v) => { setLockValue(v); if (answerState === "wrong") setAnswerState("idle"); }}
+            />
             <button
               onClick={() => handleCheckAnswer(lockValue)}
-              disabled={lockValue.replace(/\D/g, "").length < 4}
-              className="w-full mt-2 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/40 disabled:text-amber-800 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
+              className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
             >
               Lås op
             </button>

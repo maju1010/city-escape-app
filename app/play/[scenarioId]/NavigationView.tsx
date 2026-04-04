@@ -119,6 +119,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
   const imgSrc = getLocationImage(task.location_name || "", task.image_url);
 
   return (
+    <>
     <div className="min-h-screen flex flex-col">
       {/* Location image */}
       <div className="relative h-40 w-full overflow-hidden bg-[#1a1828]">
@@ -283,5 +284,6 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
         Spring navigation over
       </button>
     </div>
+    </>
   );
 }
