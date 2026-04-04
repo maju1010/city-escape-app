@@ -91,7 +91,7 @@ export default async function CityPage({
                 href={`/play/${scenario.id}`}
                 className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base py-3 rounded-lg transition-colors"
               >
-                Start scenarie
+                Start spillet
               </Link>
             </div>
           ))}
