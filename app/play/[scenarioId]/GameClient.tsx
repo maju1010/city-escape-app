@@ -190,31 +190,49 @@ function deterministicScramble(word: string): string {
   return result === upper ? chars.reverse().join("") : result;
 }
 
+// Parse choices for word_scramble: handles both "A|B|C" and "ABC" formats
+function parseScrambledLetters(raw: string): string[] {
+  if (raw.includes("|")) {
+    return raw.split("|").map((c) => c.trim().toUpperCase()).filter(Boolean);
+  }
+  return raw.toUpperCase().split("");
+}
+
 function WordScramble({
   answer,
-  scrambled,
+  rawChoices,
   answerState,
   onCheck,
-  onReset,
+  onWrong,
 }: {
   answer: string;
-  scrambled: string;
+  rawChoices: string;
   answerState: "idle" | "correct" | "wrong";
   onCheck: (v: string) => void;
-  onReset: () => void;
+  onWrong: () => void;
 }) {
-  const letters = scrambled.toUpperCase().split("");
+  const letters = parseScrambledLetters(rawChoices);
   const [selected, setSelected] = useState<number[]>([]);
+
+  // Reset selection whenever answerState is reset to idle from outside
+  useEffect(() => {
+    if (answerState === "idle") setSelected([]);
+  }, [answerState]);
 
   function pick(i: number) {
     if (selected.includes(i)) return;
     setSelected((s) => [...s, i]);
-    onReset();
+    if (answerState === "wrong") onWrong();
   }
 
   function deleteLast() {
     setSelected((s) => s.slice(0, -1));
-    onReset();
+    if (answerState === "wrong") onWrong();
+  }
+
+  function clearAll() {
+    setSelected([]);
+    if (answerState === "wrong") onWrong();
   }
 
   function check() {
@@ -222,14 +240,17 @@ function WordScramble({
     onCheck(word);
   }
 
-  const built = selected.map((i) => ({ letter: letters[i], idx: i }));
+  const built = selected.map((i) => letters[i]);
 
   return (
     <div className="mb-6">
+      {/* Heading */}
+      <div className="bg-[#14131f] border border-amber-900/30 rounded-xl px-4 py-3 mb-5 text-center">
+        <p className="text-amber-400 font-semibold text-base">Sæt bogstaverne i den rigtige rækkefølge</p>
+        <p className="text-[#6b6380] text-xs mt-1">Svaret er {answer.replace(/\s/g, "").length} bogstaver</p>
+      </div>
+
       {/* Scrambled letter pool */}
-      <p className="text-xs text-[#6b6380] tracking-widest uppercase text-center mb-3">
-        Klik bogstaverne i rigtig rækkefølge
-      </p>
       <div className="flex flex-wrap justify-center gap-2 mb-5">
         {letters.map((letter, i) => {
           const used = selected.includes(i);
@@ -238,13 +259,13 @@ function WordScramble({
               key={i}
               onClick={() => pick(i)}
               disabled={used}
-              className={`w-12 h-12 text-xl font-bold rounded-xl border-2 transition-all select-none ${
+              className={`w-13 h-13 min-w-[3rem] min-h-[3rem] text-xl font-bold rounded-xl border-2 transition-all select-none ${
                 used
-                  ? "border-transparent text-[#2a2840] bg-[#14131f] cursor-default"
+                  ? "border-transparent text-transparent bg-[#14131f] cursor-default"
                   : "border-amber-700 text-amber-300 bg-[#1a1828] hover:border-amber-400 hover:bg-amber-900/20 active:scale-90"
               }`}
             >
-              {used ? "" : letter}
+              {letter}
             </button>
           );
         })}
@@ -253,9 +274,16 @@ function WordScramble({
       {/* Built word */}
       <div className="flex justify-center gap-2 mb-4 min-h-[3.5rem] flex-wrap">
         {built.length === 0 ? (
-          <p className="text-[#3a3560] text-sm self-center">— — — —</p>
+          <div className="flex gap-2">
+            {Array.from({ length: answer.replace(/\s/g, "").length }).map((_, i) => (
+              <div
+                key={i}
+                className="w-12 h-12 rounded-xl border-2 border-dashed border-[#2a2840]"
+              />
+            ))}
+          </div>
         ) : (
-          built.map(({ letter }, i) => (
+          built.map((letter, i) => (
             <div
               key={i}
               className="w-12 h-12 flex items-center justify-center bg-[#14131f] border-2 border-amber-600 rounded-xl text-amber-300 text-xl font-bold"
@@ -267,10 +295,10 @@ function WordScramble({
       </div>
 
       {answerState === "wrong" && (
-        <p className="text-red-400 text-sm text-center mb-3">Forkert – prøv igen</p>
+        <p className="text-red-400 text-sm text-center mb-3">Forkert rækkefølge – prøv igen</p>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 mb-2">
         <button
           onClick={deleteLast}
           disabled={selected.length === 0}
@@ -280,15 +308,20 @@ function WordScramble({
         </button>
         <button
           onClick={check}
-          disabled={selected.length === 0}
-          className="flex-1 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base transition-all disabled:opacity-30"
+          disabled={selected.length !== answer.replace(/\s/g, "").length}
+          className="flex-1 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base transition-all disabled:opacity-40"
         >
           Tjek svar
         </button>
       </div>
-      <p className="text-center text-[#4a4560] text-xs mt-3">
-        Svaret er {answer.length} bogstaver
-      </p>
+      {selected.length > 0 && (
+        <button
+          onClick={clearAll}
+          className="w-full text-[#4a4560] hover:text-amber-800 text-sm underline underline-offset-2 transition-colors py-1"
+        >
+          Ryd alle
+        </button>
+      )}
     </div>
   );
 }
@@ -751,11 +784,12 @@ export default function GameClient({
         ) : task.answer_type === "word_scramble" ? (
           /* Word scramble */
           <WordScramble
+            key={task.id}
             answer={task.answer}
-            scrambled={task.choices || deterministicScramble(task.answer)}
+            rawChoices={task.choices || deterministicScramble(task.answer)}
             answerState={answerState}
             onCheck={handleCheckAnswer}
-            onReset={() => setAnswerState("idle")}
+            onWrong={() => setAnswerState("idle")}
           />
         ) : task.answer_type === "photo" ? (
           /* Photo */
