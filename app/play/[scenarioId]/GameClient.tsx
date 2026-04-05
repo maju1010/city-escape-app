@@ -556,6 +556,22 @@ function GameClientInner({
     }));
   }
 
+  // Derived from current task – must be above all early returns to satisfy Rules of Hooks
+  const task = tasks[currentIndex];
+  const choices = task?.choices ? task.choices.split("|").map((c) => c.trim()) : [];
+
+  // Fisher-Yates shuffle – re-randomised each time a new task is shown
+  const shuffledChoices = useMemo(() => {
+    if (choices.length === 0) return choices;
+    const arr = [...choices];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task?.id]); // shuffle once per task (stable within session, random across games)
+
   // ── Team name screen ──
   function handleStartGame() {
     const name = teamInput.trim() || "Holdet";
@@ -598,8 +614,6 @@ function GameClientInner({
       </main>
     );
   }
-
-  const task = tasks[currentIndex];
 
   async function handleNextTask() {
     if (currentIndex + 1 >= tasks.length) {
@@ -752,20 +766,6 @@ function GameClientInner({
     task?.latitude && task?.longitude
       ? `https://www.google.com/maps?q=${task.latitude},${task.longitude}`
       : null;
-  const choices = task?.choices ? task.choices.split("|").map((c) => c.trim()) : [];
-
-  // Fisher-Yates shuffle – re-randomised each time a new task is shown
-  const shuffledChoices = useMemo(() => {
-    if (choices.length === 0) return choices;
-    const arr = [...choices];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task?.id]); // shuffle once per task (stable within session, random across games)
-
   // Number of digits for combination lock – derived from the answer
   const lockDigits = task?.answer_type === "combination_lock"
     ? Math.max(task.answer.replace(/\D/g, "").length, 1)
@@ -1053,7 +1053,7 @@ function GameClientInner({
         </div>
 
         {/* Answer area */}
-        <div ref={answerAreaRef}>
+        <div ref={answerAreaRef} key={task?.id}>
         {taskSolved && answerState !== "correct" ? null : answerState === "correct" ? (
           <div className="bg-[#1a2818] border border-green-800/50 rounded-xl p-5 mb-6">
             <p className="text-green-400 font-semibold text-base mb-2">✓ Korrekt svar!</p>
