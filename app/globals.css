@@ -140,6 +140,15 @@ html.light body { background: var(--background); color: var(--foreground); }
   border-radius: 0.5rem;
 }
 
+/* ── Reward box slide-in entrance ── */
+@keyframes reward-enter {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reward-enter {
+  animation: reward-enter 0.3s ease-out forwards;
+}
+
 /* ── Reward box green glow pulse ── */
 @keyframes reward-glow {
   0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.8); border-color: rgba(34, 197, 94, 0.9); }
@@ -167,6 +176,7 @@ html.light body { background: var(--background); color: var(--foreground); }
   .correct-ring,
   .hint-enter,
   .gold-particle,
+  .reward-enter,
   .reward-glow,
   .skeleton {
     animation: none !important;

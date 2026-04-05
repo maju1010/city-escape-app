@@ -51,11 +51,90 @@ type Props = {
   onSkip: () => void;
 };
 
+function GpsBlockedHelp() {
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  const isIOS     = /iPhone|iPad/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+  const isMobile  = isIOS || isAndroid;
+
+  return (
+    <div className="bg-bg-card border border-amber-900/30 rounded-xl p-5 text-sm">
+      <p className="text-amber-400 font-semibold mb-1">📍 GPS er blokeret</p>
+      <p className="text-text-secondary mb-4 leading-relaxed">
+        Spillet har brug for din placering for at vise afstand og kompas.
+        Tilladelse er slået fra – her er hvad du gør:
+      </p>
+
+      {isIOS && (
+        <ol className="text-text-secondary space-y-1.5 list-decimal list-inside leading-relaxed">
+          <li>Åbn <strong className="text-text-primary">Indstillinger</strong></li>
+          <li>Tryk på <strong className="text-text-primary">Privatliv og sikkerhed</strong></li>
+          <li>Tryk på <strong className="text-text-primary">Lokalitetstjenester</strong></li>
+          <li>Find <strong className="text-text-primary">Safari</strong> og vælg <strong className="text-text-primary">Mens appen bruges</strong></li>
+          <li>Genindlæs siden</li>
+        </ol>
+      )}
+
+      {isAndroid && (
+        <ol className="text-text-secondary space-y-1.5 list-decimal list-inside leading-relaxed">
+          <li>Tryk på <strong className="text-text-primary">låseikonet 🔒</strong> i adresselinjen</li>
+          <li>Tryk på <strong className="text-text-primary">Tilladelser</strong></li>
+          <li>Vælg <strong className="text-text-primary">Lokation</strong> → <strong className="text-text-primary">Tillad</strong></li>
+          <li>Genindlæs siden</li>
+        </ol>
+      )}
+
+      {!isMobile && (
+        <>
+          <p className="text-text-secondary mb-3 leading-relaxed">
+            Klik på <strong className="text-text-primary">🔒 låseikonet</strong> til venstre for adresselinjen i din browser og find <strong className="text-text-primary">Placering → Tillad</strong>.
+          </p>
+          <div className="flex flex-col gap-2">
+            <p className="text-text-tertiary text-xs uppercase tracking-wider">Browser-specifikke vejledninger:</p>
+            <a
+              href="https://support.google.com/chrome/answer/142065"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-600 hover:text-amber-400 underline underline-offset-2 transition-colors"
+            >
+              Chrome – Administrer placeringstilladelser →
+            </a>
+            <a
+              href="https://support.mozilla.org/kb/permissions-manager-give-ability-store-passwords-set-cookies-more"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-600 hover:text-amber-400 underline underline-offset-2 transition-colors"
+            >
+              Firefox – Tilladelsesstyring →
+            </a>
+            <a
+              href="https://support.apple.com/guide/safari/websites-ibrwe2159f50"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-600 hover:text-amber-400 underline underline-offset-2 transition-colors"
+            >
+              Safari – Indstillinger for websites →
+            </a>
+          </div>
+        </>
+      )}
+
+      <button
+        onClick={() => window.location.reload()}
+        className="mt-5 w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-bg-primary font-semibold text-sm btn-glow transition-all"
+      >
+        Prøv igen efter at have tilladt adgang
+      </button>
+    </div>
+  );
+}
+
 export default function NavigationView({ task, onArrived, onSkip }: Props) {
   const shouldReduce = useReducedMotion();
   const { t } = useI18n();
   const [playerPos, setPlayerPos] = useState<{ lat: number; lon: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const [geoBlocked, setGeoBlocked] = useState(false);
   const [heading, setHeading] = useState<number>(0); // degrees from north
   const [orientationGranted, setOrientationGranted] = useState(false);
   const [needsOrientationPermission, setNeedsOrientationPermission] = useState(false);
@@ -69,9 +148,18 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
       return;
     }
     const id = navigator.geolocation.watchPosition(
-      (pos) =>
-        setPlayerPos({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      () => setGeoError("Kunne ikke hente din placering."),
+      (pos) => {
+        setGeoBlocked(false);
+        setGeoError(null);
+        setPlayerPos({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+      },
+      (err) => {
+        if (err.code === 1 /* PERMISSION_DENIED */) {
+          setGeoBlocked(true);
+        } else {
+          setGeoError("Kunne ikke hente din placering.");
+        }
+      },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
     );
     return () => navigator.geolocation.clearWatch(id);
@@ -190,7 +278,11 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
       </div>
 
       <div className="flex-1 px-4 py-5 pb-20 max-w-lg mx-auto w-full flex flex-col gap-5">
+        {/* GPS blocked – show instructions */}
+        {geoBlocked && <GpsBlockedHelp />}
+
         {/* Distance */}
+        {!geoBlocked && (
         <div className="bg-bg-secondary border border-amber-900/40 rounded-xl px-5 py-4 text-center">
           {geoError ? (
             <p className="text-text-secondary text-sm">{geoError}</p>
@@ -212,9 +304,10 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
             </>
           )}
         </div>
+        )} {/* end !geoBlocked */}
 
-        {/* Map */}
-        {playerPos ? (
+        {/* Map + compass – hidden while GPS is blocked */}
+        {!geoBlocked && playerPos ? (
           <div className="rounded-xl overflow-hidden border border-amber-900/30">
             <MapComponent
               playerLat={playerPos.lat}
@@ -223,14 +316,14 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
               destLon={task.longitude}
             />
           </div>
-        ) : (
+        ) : !geoBlocked ? (
           <div className="w-full h-[220px] rounded-xl bg-bg-card border border-amber-900/30 flex items-center justify-center text-text-tertiary text-sm">
             Venter på GPS…
           </div>
-        )}
+        ) : null}
 
-        {/* Compass */}
-        <div className="flex flex-col items-center gap-2">
+        {/* Compass – hidden while GPS is blocked */}
+        {!geoBlocked && <div className="flex flex-col items-center gap-2">
           <p className="text-xs text-text-tertiary tracking-widest uppercase">Kompas</p>
 
           {needsOrientationPermission && !orientationGranted ? (
@@ -301,7 +394,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
               </div>
             </motion.div>
           )}
-        </div>
+        </div>}
 
         {/* Buttons */}
         <div className="flex flex-col gap-3 mt-auto pb-4">

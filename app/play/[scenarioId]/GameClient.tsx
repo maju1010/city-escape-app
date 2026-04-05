@@ -560,6 +560,7 @@ function GameClientInner({
   const [reviewSending, setReviewSending] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [showGoldRain, setShowGoldRain] = useState(false);
 
   const shouldReduce = useReducedMotion();
   const { t } = useI18n();
@@ -676,6 +677,13 @@ function GameClientInner({
     })();
   }, [shouldReduce]);
 
+  // Modest single-burst confetti for per-task correct answers
+  function fireTaskConfetti() {
+    if (shouldReduce) return;
+    const colors = ["#f0a830", "#fbbf24", "#fde68a", "#34d399", "#ffffff"];
+    confetti({ particleCount: 40, spread: 65, origin: { x: 0.5, y: 0.55 }, colors, startVelocity: 30, gravity: 1.1, ticks: 100 });
+  }
+
   // ── Session persistence helper ──
   function saveSession(index: number, hints: number) {
     localStorage.setItem(SESSION_KEY, JSON.stringify({
@@ -744,24 +752,30 @@ function GameClientInner({
       setAnswerState("correct");
       playSuccess();
       haptic([50, 30, 50]);
-      if (task.narrative_reward && !shouldReduce) {
-        requestAnimationFrame(() => {
-          const el = answerAreaRef.current?.querySelector(".reward-box") as HTMLElement | null;
-          if (el) {
-            el.classList.remove("reward-glow");
-            void el.offsetWidth;
-            el.classList.add("reward-glow");
-            setTimeout(() => el.classList.remove("reward-glow"), 1000);
-          }
-        });
-      }
       if (!shouldReduce) {
+        // Green ring on the answer area
         const el = answerAreaRef.current;
         if (el) {
           el.classList.remove("correct-ring");
           void el.offsetWidth;
           el.classList.add("correct-ring");
           setTimeout(() => el.classList.remove("correct-ring"), 900);
+        }
+        // Confetti burst + gold rain
+        fireTaskConfetti();
+        setShowGoldRain(true);
+        setTimeout(() => setShowGoldRain(false), 2200);
+        // Green glow on reward box after React renders it
+        if (task.narrative_reward) {
+          requestAnimationFrame(() => {
+            const box = answerAreaRef.current?.querySelector(".reward-box") as HTMLElement | null;
+            if (box) {
+              box.classList.remove("reward-glow");
+              void box.offsetWidth;
+              box.classList.add("reward-glow");
+              setTimeout(() => box.classList.remove("reward-glow"), 1000);
+            }
+          });
         }
       }
     } else {
@@ -1096,7 +1110,7 @@ function GameClientInner({
             {/* Answer area */}
             <div ref={answerAreaRef} key={task?.id}>
               {answerState === "correct" ? (
-                <div className="reward-box bg-[#1a2818] border border-green-800/50 rounded-xl p-5 mb-6">
+                <div className="reward-box reward-enter bg-[#1a2818] border border-green-800/50 rounded-xl p-5 mb-6">
                   <p className="text-green-400 font-semibold text-base mb-2">{t("correct")}</p>
                   {task.narrative_reward && (
                     <p className="text-[#a8c8a0] text-[17px] leading-relaxed italic">
@@ -1270,6 +1284,27 @@ function GameClientInner({
       </div>
 
       <div className="h-8" />
+
+      {/* Gold rain particles */}
+      {showGoldRain && !shouldReduce && (
+        <div aria-hidden="true">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div
+              key={i}
+              className="gold-particle"
+              style={{
+                left: `${8 + i * 7.5}%`,
+                top: "-10px",
+                fontSize: `${14 + (i % 3) * 6}px`,
+                animationDuration: `${1.4 + (i % 4) * 0.25}s`,
+                animationDelay: `${(i % 5) * 0.08}s`,
+              }}
+            >
+              {(["✦", "★", "◆", "✦"] as const)[i % 4]}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Exit confirmation modal */}
       {showExitModal && (
