@@ -275,12 +275,19 @@ export default function BurgerMenu() {
                 <div className="px-5 py-2">
                   <h2 className="text-amber-400 font-bold text-lg mb-4">ℹ️ Om City Escape</h2>
                   <div className="flex justify-center mb-5">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="https://paitcrtbdcvujhpfpbhw.supabase.co/storage/v1/object/public/images/Logo.png"
-                      alt="City Escape"
-                      style={{ maxWidth: 160, width: "100%", height: "auto" }}
-                    />
+                    <div className="relative inline-flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full blur-2xl opacity-25"
+                        style={{ background: "radial-gradient(ellipse, rgba(240,168,48,0.7) 0%, transparent 70%)" }} />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="https://paitcrtbdcvujhpfpbhw.supabase.co/storage/v1/object/public/images/Logo.png"
+                        alt="City Escape"
+                        style={{
+                          maxWidth: 160, width: "100%", height: "auto", position: "relative",
+                          filter: "drop-shadow(0 0 14px rgba(240,168,48,0.3)) drop-shadow(0 2px 5px rgba(0,0,0,0.4))",
+                        }}
+                      />
+                    </div>
                   </div>
                   <p className="text-text-secondary text-sm leading-relaxed mb-4">
                     City Escape er et outdoor escape room spil der bringer dig ud i byens gader.

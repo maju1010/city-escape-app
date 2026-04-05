@@ -51,13 +51,20 @@ export default async function HomePage() {
     <main className="min-h-screen flex flex-col items-center px-4 py-12" style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(240,168,48,0.04) 0%, transparent 60%), #1a1820" }}>
       {/* Logo */}
       <div className="text-center mb-10">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={LOGO_URL}
-          alt="City Escape"
-          className="mx-auto mb-4"
-          style={{ maxWidth: 300, width: "100%", height: "auto" }}
-        />
+        <div className="relative inline-flex items-center justify-center mb-4">
+          {/* Ambient glow */}
+          <div className="absolute inset-0 rounded-full blur-3xl opacity-25"
+            style={{ background: "radial-gradient(ellipse, rgba(240,168,48,0.7) 0%, transparent 70%)" }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={LOGO_URL}
+            alt="City Escape"
+            style={{
+              maxWidth: 300, width: "100%", height: "auto", position: "relative",
+              filter: "drop-shadow(0 0 22px rgba(240,168,48,0.3)) drop-shadow(0 3px 8px rgba(0,0,0,0.5))",
+            }}
+          />
+        </div>
         <p className="text-text-secondary text-sm tracking-wider uppercase">
           Vælg din destination
         </p>

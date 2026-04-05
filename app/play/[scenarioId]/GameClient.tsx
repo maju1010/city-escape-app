@@ -857,16 +857,22 @@ function GameClientInner({
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center py-12">
         <motion.div
-          className="mb-6"
+          className="relative mb-6 flex items-center justify-center"
           initial={shouldReduce ? false : { opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
+          {/* Ambient glow behind logo */}
+          <div className="absolute inset-0 rounded-full blur-2xl opacity-30"
+            style={{ background: "radial-gradient(ellipse, rgba(240,168,48,0.6) 0%, transparent 70%)" }} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://paitcrtbdcvujhpfpbhw.supabase.co/storage/v1/object/public/images/Logo.png"
             alt="City Escape"
-            style={{ maxWidth: 200, width: "100%", height: "auto" }}
+            style={{
+              maxWidth: 200, width: "100%", height: "auto", position: "relative",
+              filter: "drop-shadow(0 0 18px rgba(240,168,48,0.35)) drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
+            }}
           />
         </motion.div>
 
