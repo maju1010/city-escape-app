@@ -302,20 +302,10 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
           <div>
             <button
               onClick={onArrived}
-              disabled={!isNearby && !geoError}
-              className={`w-full py-4 rounded-xl font-semibold text-base transition-all ${
-                isNearby || geoError
-                  ? "bg-amber-600 hover:bg-amber-500 text-[#0f0e17] btn-glow"
-                  : "bg-[#1a1828] border border-amber-900/30 text-[#4a4560] cursor-not-allowed"
-              }`}
+              className="w-full py-4 rounded-xl font-semibold text-base bg-amber-600 hover:bg-amber-500 text-[#0f0e17] btn-glow transition-all"
             >
               Jeg er fremme →
             </button>
-            {!isNearby && !geoError && (
-              <p className="text-center text-[#4a4560] text-xs mt-2">
-                Kom tættere på for at låse op
-              </p>
-            )}
           </div>
 
         </div>

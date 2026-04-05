@@ -508,8 +508,6 @@ function GameClientInner({
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewSending, setReviewSending] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
-  // Test navigation (activated by 5 quick taps on progress bar)
-  const [testMode, setTestMode] = useState(false);
   const progressTaps = useRef(0);
   const progressTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Animation states
@@ -771,17 +769,6 @@ function GameClientInner({
     }
   }
 
-  function handleProgressTap() {
-    progressTaps.current++;
-    if (progressTapTimer.current) clearTimeout(progressTapTimer.current);
-    if (progressTaps.current >= 5) {
-      progressTaps.current = 0;
-      setTestMode((v) => !v);
-    } else {
-      progressTapTimer.current = setTimeout(() => { progressTaps.current = 0; }, 1500);
-    }
-  }
-
   function jumpToTask(idx: number) {
     setCurrentIndex(idx);
     setShowNavigation(true);
@@ -1025,7 +1012,7 @@ function GameClientInner({
               <span className="text-xs text-[#6b6380] tracking-wider uppercase truncate mr-3">{scenario.title}</span>
               <span className="text-xs text-amber-700 shrink-0">{currentIndex + 1} / {tasks.length}</span>
             </div>
-            <div className="w-full h-2 bg-[#2a2840] rounded-full overflow-hidden cursor-pointer" onClick={handleProgressTap}>
+            <div className="w-full h-2 bg-[#2a2840] rounded-full overflow-hidden">
               <div
                 className="h-2 bg-gradient-to-r from-amber-700 to-amber-400 rounded-full transition-all duration-500"
                 style={{ width: `${((currentIndex + 1) / tasks.length) * 100}%` }}
@@ -1077,6 +1064,7 @@ function GameClientInner({
               style={{ width: `${((currentIndex + 1) / tasks.length) * 100}%` }}
             />
           </div>
+
         </div>
       </header>
 
@@ -1310,6 +1298,8 @@ function GameClientInner({
         </div>{/* close px-4 py-5 */}
       </main>
     </div>
+    {/* Spacer so content clears the fixed test bar */}
+    <div className="h-8" />
 
     {/* Reward banner – slides up from bottom on correct answer */}
     {showRewardBanner && task?.narrative_reward && (
@@ -1347,28 +1337,25 @@ function GameClientInner({
       </div>
     )}
 
-    {/* Test navigation overlay – activated by 5 taps on progress bar */}
-    {testMode && (
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0d0c17]/95 border-t border-gray-700/50 px-4 py-2 flex items-center justify-between">
-        <button
-          onClick={() => currentIndex > 0 && jumpToTask(currentIndex - 1)}
-          disabled={currentIndex === 0}
-          className="text-gray-400 hover:text-gray-200 text-sm px-3 py-1.5 disabled:opacity-30 transition-colors"
-        >
-          ← Forrige
-        </button>
-        <span className="text-gray-600 text-xs tracking-wider">
-          TEST · opgave {currentIndex + 1} / {tasks.length}
-        </span>
-        <button
-          onClick={() => currentIndex < tasks.length - 1 && jumpToTask(currentIndex + 1)}
-          disabled={currentIndex >= tasks.length - 1}
-          className="text-gray-400 hover:text-gray-200 text-sm px-3 py-1.5 disabled:opacity-30 transition-colors"
-        >
-          Næste →
-        </button>
+    {/* Test navigation bar – always visible */}
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0910]/95 border-t border-gray-800/60 px-3 py-1.5 flex items-center gap-2">
+      <span className="text-gray-600 text-[10px] tracking-widest uppercase shrink-0 select-none">⚙ TEST</span>
+      <div className="flex gap-1 overflow-x-auto scrollbar-none flex-1">
+        {tasks.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => jumpToTask(i)}
+            className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
+              i === currentIndex
+                ? "bg-amber-900/60 text-amber-400"
+                : "text-gray-600 hover:text-gray-400 hover:bg-gray-800/50"
+            }`}
+          >
+            {i + 1}
+          </button>
+        ))}
       </div>
-    )}
+    </div>
     </>
   );
 }
