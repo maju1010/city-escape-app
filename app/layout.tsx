@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import BurgerMenu from "./components/BurgerMenu";
+import ScrollToTop from "./components/ScrollToTop";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-bg-primary text-text-primary">
+        <ScrollToTop />
         <BurgerMenu />
         {children}
       </body>

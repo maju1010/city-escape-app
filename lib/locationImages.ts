@@ -8,6 +8,7 @@ export const LOCATION_IMAGES: Record<string, string> = {
   'aarhus rådhus':           `${SUPABASE_STORAGE}/Aarhus_Radhus.jpg`,
   'aarhus domkirke':         `${SUPABASE_STORAGE}/AarhusDomkirke.jpg`,
   'aarhus å / åboulevarden': `${SUPABASE_STORAGE}/aarhusAA.jpg`,
+  'latinerkvarteret':        `${SUPABASE_STORAGE}/Mejlgade.jpg`,
   'mejlgade':                `${SUPABASE_STORAGE}/Mejlgade.jpg`,
   'den gamle by':            `${SUPABASE_STORAGE}/DenGamleBy.jpg`,
   'clemens torv':            `${SUPABASE_STORAGE}/Clemenstorv.jpg`,

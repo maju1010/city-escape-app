@@ -641,6 +641,11 @@ function GameClientInner({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenario.id]);
 
+  // ── Scroll to top on every task / phase change ──
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentIndex, phase]);
+
   // ── Exit confirmation ──
   useEffect(() => {
     if (phase === "finished") return;
