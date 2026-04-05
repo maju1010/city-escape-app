@@ -8,7 +8,6 @@ import NavigationView from "./NavigationView";
 import QRShare from "./QRShare";
 import GoldRain from "./GoldRain";
 import TaskTransition from "./TaskTransition";
-import IntroSequence from "./IntroSequence";
 import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/sounds";
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
@@ -444,8 +443,7 @@ export default function GameClient({
   const [testMode, setTestMode] = useState(false);
   const progressTaps = useRef(0);
   const progressTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Intro + animation states
-  const [showIntro, setShowIntro] = useState(false);
+  // Animation states
   const [showGoldRain, setShowGoldRain] = useState(false);
   const [transitionActive, setTransitionActive] = useState(false);
   const [transitionTitle, setTransitionTitle] = useState("");
@@ -527,20 +525,6 @@ export default function GameClient({
     localStorage.setItem(getTeamKey(scenario.id), name);
     saveActiveGame(name, 0);
     setTeamName(name);
-    setShowIntro(true); // Show intro for fresh game start
-  }
-
-  // ── Intro sequence ──
-  if (showIntro) {
-    const firstTaskImage = tasks[0]
-      ? getLocationImage(tasks[0].location_name || "", tasks[0].image_url)
-      : null;
-    return (
-      <IntroSequence
-        missionImageSrc={firstTaskImage}
-        onComplete={() => setShowIntro(false)}
-      />
-    );
   }
 
   if (!teamName) {
