@@ -548,6 +548,7 @@ function GameClientInner({
   const [hintsShown, setHintsShown] = useState(0);
   const [totalHints, setTotalHints] = useState(0);
   const [photoUploaded, setPhotoUploaded] = useState(false);
+  const [photoAlbum, setPhotoAlbum] = useState<Array<{ taskTitle: string; url: string }>>([]);
   const [lockValue, setLockValue] = useState("0000");
   const [elapsed, setElapsed] = useState(0);
   const [finalTime, setFinalTime] = useState(0);
@@ -937,6 +938,40 @@ function GameClientInner({
           Mysteriet er opklaret. Byen har ingen hemmeligheder for jer.
         </p>
 
+        {/* Photo album */}
+        {photoAlbum.length > 0 && (
+          <motion.div
+            className="w-full max-w-xs mb-8"
+            initial={shouldReduce ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+          >
+            <p className="text-text-tertiary text-xs uppercase tracking-widest mb-3 text-center">Fotoalbum</p>
+            <div className={`grid gap-3 ${photoAlbum.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+              {photoAlbum.map((photo) => (
+                <div key={photo.taskTitle} className="relative rounded-xl overflow-hidden border border-amber-900/30 aspect-square bg-bg-secondary">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photo.url}
+                    alt={photo.taskTitle}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Logo watermark */}
+                  <div className="absolute bottom-2 right-2 bg-black/50 rounded-lg p-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="https://paitcrtbdcvujhpfpbhw.supabase.co/storage/v1/object/public/images/Logo.png"
+                      alt=""
+                      aria-hidden="true"
+                      style={{ width: 48, height: "auto", opacity: 0.9 }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         <div className="w-full max-w-xs flex flex-col gap-3">
           <button
             onClick={handleShare}
@@ -1205,7 +1240,16 @@ function GameClientInner({
                     capture="environment"
                     className="hidden"
                     onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) setPhotoUploaded(true);
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const url = URL.createObjectURL(file);
+                        setPhotoAlbum((prev) => {
+                          // Replace existing photo for this task if re-taken
+                          const filtered = prev.filter((p) => p.taskTitle !== task.title);
+                          return [...filtered, { taskTitle: task.title, url }];
+                        });
+                        setPhotoUploaded(true);
+                      }
                     }}
                   />
                 </div>
