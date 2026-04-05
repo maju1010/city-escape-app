@@ -1,6 +1,22 @@
 @import "tailwindcss";
 
-/* ── Dark theme (default) ── */
+/* ── Semantic color tokens exposed as Tailwind utilities ── */
+/* Usage: bg-bg-primary, text-text-primary, border-narrative-border, etc. */
+@theme {
+  --color-bg-primary:        #1a1820;   /* App background */
+  --color-bg-secondary:      #242232;   /* Cards / panels */
+  --color-bg-card:           #221f31;   /* Question box, inset sections */
+  --color-bg-inset:          #2e2a3d;   /* Inputs, hints, nested elements */
+  --color-bg-nav:            #1c1b2a;   /* Navigation screen – cooler undertone */
+  --color-text-primary:      #e8e0d0;   /* Main text – warm off-white */
+  --color-text-secondary:    #b8a99a;   /* Secondary – warm parchment gray */
+  --color-text-tertiary:     #7a6e65;   /* Muted / labels */
+  --color-narrative-bg:      #2a2218;   /* Narrative boxes – warm sepia */
+  --color-narrative-border:  #8b6914;   /* Narrative left border – deep gold */
+  --color-accent:            #f0a830;   /* Primary amber accent (buttons, highlights) */
+}
+
+/* ── Dark theme CSS variables (for raw CSS use via var()) ── */
 :root,
 html.dark {
   --background: #1a1820;
@@ -39,7 +55,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Light mode overrides for the game UI */
+/* Light mode overrides */
 html.light .game-surface  { background: var(--surface); }
 html.light .game-surface-2 { background: var(--surface-2); }
 html.light body { background: var(--background); color: var(--foreground); }
@@ -69,9 +85,7 @@ html.light body { background: var(--background); color: var(--foreground); }
   72%  { transform: translateX(6px); }
   90%  { transform: translateX(-2px); }
 }
-.answer-shake {
-  animation: answer-shake 0.45s ease-out;
-}
+.answer-shake { animation: answer-shake 0.45s ease-out; }
 
 /* ── Correct answer green ring ── */
 @keyframes correct-ring {
@@ -79,9 +93,7 @@ html.light body { background: var(--background); color: var(--foreground); }
   60%  { box-shadow: 0 0 0 22px rgba(74, 222, 128, 0); }
   100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
 }
-.correct-ring {
-  animation: correct-ring 0.85s ease-out;
-}
+.correct-ring { animation: correct-ring 0.85s ease-out; }
 
 /* ── Gold rain particle ── */
 @keyframes gold-fall {
@@ -103,12 +115,8 @@ html.light body { background: var(--background); color: var(--foreground); }
   from { opacity: 0; transform: translateY(-10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.hint-enter {
-  animation: hint-slide-down 0.35s ease-out forwards;
-}
-.hint-glow {
-  box-shadow: 0 0 16px 2px rgba(240, 168, 48, 0.1);
-}
+.hint-enter { animation: hint-slide-down 0.35s ease-out forwards; }
+.hint-glow  { box-shadow: 0 0 16px 2px rgba(240, 168, 48, 0.1); }
 
 /* ── Red mission dot pulse ── */
 @keyframes pulse-red {
@@ -138,9 +146,7 @@ html.light body { background: var(--background); color: var(--foreground); }
   50%  { box-shadow: 0 0 20px 6px rgba(34, 197, 94, 0.4); border-color: rgba(74, 222, 128, 0.9); }
   100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); border-color: rgba(22, 101, 52, 0.5); }
 }
-.reward-glow {
-  animation: reward-glow 1s ease-out forwards;
-}
+.reward-glow { animation: reward-glow 1s ease-out forwards; }
 
 /* ── Amber glow on buttons ── */
 .btn-glow {
@@ -155,7 +161,7 @@ html.light body { background: var(--background); color: var(--foreground); }
   outline: none;
 }
 
-/* ── prefers-reduced-motion: disable all custom animations ── */
+/* ── prefers-reduced-motion ── */
 @media (prefers-reduced-motion: reduce) {
   .answer-shake,
   .correct-ring,
@@ -168,7 +174,7 @@ html.light body { background: var(--background); color: var(--foreground); }
   }
 }
 
-/* Override Leaflet default styles for dark theme */
+/* ── Leaflet overrides ── */
 .leaflet-container {
   background: #1a1820 !important;
   border-radius: 0.75rem;
@@ -178,6 +184,4 @@ html.light body { background: var(--background); color: var(--foreground); }
   color: #7a6e65 !important;
   font-size: 9px !important;
 }
-.leaflet-control-attribution a {
-  color: #7a6e65 !important;
-}
+.leaflet-control-attribution a { color: #7a6e65 !important; }

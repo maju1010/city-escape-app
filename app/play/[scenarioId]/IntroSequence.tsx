@@ -53,7 +53,7 @@ export default function IntroSequence({
 
       <button
         onClick={done}
-        className="absolute top-4 right-4 text-[#4a4560] hover:text-amber-700 text-sm transition-colors px-3 py-2"
+        className="absolute top-4 right-4 text-text-tertiary hover:text-amber-700 text-sm transition-colors px-3 py-2"
       >
         Spring intro over →
       </button>

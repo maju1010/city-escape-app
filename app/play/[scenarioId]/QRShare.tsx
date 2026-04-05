@@ -28,12 +28,12 @@ export default function QRShare({ scenarioId }: { scenarioId: string }) {
 
   return (
     <div className="mt-8 pt-6 border-t border-amber-900/30">
-      <p className="text-xs text-[#7a6e65] tracking-widest uppercase text-center mb-5">
+      <p className="text-xs text-text-tertiary tracking-widest uppercase text-center mb-5">
         Del med dit hold
       </p>
       <div className="flex flex-col items-center gap-3">
         <canvas ref={canvasRef} className="rounded-xl" />
-        <p className="text-[#b8a99a] text-sm">Scan og spil med</p>
+        <p className="text-text-secondary text-sm">Scan og spil med</p>
         <button
           onClick={handleCopy}
           className="text-amber-700 hover:text-amber-500 text-sm underline underline-offset-2 transition-colors"

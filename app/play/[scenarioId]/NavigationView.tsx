@@ -14,7 +14,7 @@ import { getLocationImage } from "@/lib/locationImages";
 const MapComponent = dynamic(() => import("./MapComponent"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[220px] rounded-xl bg-[#221f31] border border-amber-900/30 flex items-center justify-center text-[#7a6e65] text-sm">
+    <div className="w-full h-[220px] rounded-xl bg-bg-card border border-amber-900/30 flex items-center justify-center text-text-tertiary text-sm">
       Indlæser kort…
     </div>
   ),
@@ -168,7 +168,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
     <>
     <div className="min-h-screen flex flex-col">
       {/* Location image */}
-      <div className="relative h-40 w-full overflow-hidden bg-[#242232]">
+      <div className="relative h-40 w-full overflow-hidden bg-bg-secondary">
         {!imgError && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -183,17 +183,17 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
           <p className="text-amber-400 font-bold text-lg leading-tight drop-shadow">
             {task.location_name}
           </p>
-          <p className="text-[#b8a99a] text-sm">Naviger til lokationen</p>
+          <p className="text-text-secondary text-sm">Naviger til lokationen</p>
         </div>
       </div>
 
       <div className="flex-1 px-4 py-5 pb-20 max-w-lg mx-auto w-full flex flex-col gap-5">
         {/* Distance */}
-        <div className="bg-[#242232] border border-amber-900/40 rounded-xl px-5 py-4 text-center">
+        <div className="bg-bg-secondary border border-amber-900/40 rounded-xl px-5 py-4 text-center">
           {geoError ? (
-            <p className="text-[#b8a99a] text-sm">{geoError}</p>
+            <p className="text-text-secondary text-sm">{geoError}</p>
           ) : displayedDistance === null ? (
-            <p className="text-[#7a6e65] text-sm">{t("fetchingLocation")}</p>
+            <p className="text-text-tertiary text-sm">{t("fetchingLocation")}</p>
           ) : (
             <>
               <p className="text-3xl font-bold text-amber-300 tabular-nums">
@@ -201,7 +201,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
                   ? `${Math.round(displayedDistance)} m`
                   : `${(displayedDistance / 1000).toFixed(1)} km`}
               </p>
-              <p className="text-[#b8a99a] text-sm mt-1">fra {task.location_name}</p>
+              <p className="text-text-secondary text-sm mt-1">fra {task.location_name}</p>
               {isNearby && (
                 <p className="text-green-400 text-xs mt-1 font-semibold">
                   {t("arrived")}
@@ -222,14 +222,14 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
             />
           </div>
         ) : (
-          <div className="w-full h-[220px] rounded-xl bg-[#221f31] border border-amber-900/30 flex items-center justify-center text-[#7a6e65] text-sm">
+          <div className="w-full h-[220px] rounded-xl bg-bg-card border border-amber-900/30 flex items-center justify-center text-text-tertiary text-sm">
             Venter på GPS…
           </div>
         )}
 
         {/* Compass */}
         <div className="flex flex-col items-center gap-2">
-          <p className="text-xs text-[#7a6e65] tracking-widest uppercase">Kompas</p>
+          <p className="text-xs text-text-tertiary tracking-widest uppercase">Kompas</p>
 
           {needsOrientationPermission && !orientationGranted ? (
             <button
@@ -248,9 +248,9 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
               {/* Compass ring */}
               <svg viewBox="0 0 144 144" className="w-full h-full">
                 {/* Outer ring */}
-                <circle cx="72" cy="72" r="68" fill="#221f31" stroke="#78350f" strokeWidth="2" />
+                <circle cx="72" cy="72" r="68" fill="var(--color-bg-card)" stroke="#78350f" strokeWidth="2" />
                 {/* Inner ring */}
-                <circle cx="72" cy="72" r="58" fill="none" stroke="#242232" strokeWidth="1" />
+                <circle cx="72" cy="72" r="58" fill="none" stroke="var(--color-bg-secondary)" strokeWidth="1" />
                 {/* Tick marks */}
                 {Array.from({ length: 36 }).map((_, i) => {
                   const angle = (i * 10 * Math.PI) / 180;
@@ -264,18 +264,18 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
                       y1={72 - r1 * Math.cos(angle)}
                       x2={72 + r2 * Math.sin(angle)}
                       y2={72 - r2 * Math.cos(angle)}
-                      stroke={isMajor ? "#78350f" : "#2e2a3d"}
+                      stroke={isMajor ? "#78350f" : "var(--color-bg-inset)"}
                       strokeWidth={isMajor ? 2 : 1}
                     />
                   );
                 })}
                 {/* Cardinal labels */}
                 <text x="72" y="20" textAnchor="middle" fill="#f59e0b" fontSize="13" fontWeight="bold">N</text>
-                <text x="72" y="132" textAnchor="middle" fill="#7a6e65" fontSize="11">S</text>
-                <text x="132" y="76" textAnchor="middle" fill="#7a6e65" fontSize="11">Ø</text>
-                <text x="12" y="76" textAnchor="middle" fill="#7a6e65" fontSize="11">V</text>
+                <text x="72" y="132" textAnchor="middle" fill="var(--color-text-tertiary)" fontSize="11">S</text>
+                <text x="132" y="76" textAnchor="middle" fill="var(--color-text-tertiary)" fontSize="11">Ø</text>
+                <text x="12" y="76" textAnchor="middle" fill="var(--color-text-tertiary)" fontSize="11">V</text>
                 {/* Center dot */}
-                <circle cx="72" cy="72" r="5" fill="#242232" stroke="#78350f" strokeWidth="1.5" />
+                <circle cx="72" cy="72" r="5" fill="var(--color-bg-secondary)" stroke="#78350f" strokeWidth="1.5" />
               </svg>
 
               {/* Rotating needle */}
@@ -306,7 +306,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
           <div>
             <button
               onClick={onArrived}
-              className="w-full py-4 rounded-xl font-semibold text-base bg-amber-600 hover:bg-amber-500 text-[#1a1820] btn-glow transition-all"
+              className="w-full py-4 rounded-xl font-semibold text-base bg-amber-600 hover:bg-amber-500 text-bg-primary btn-glow transition-all"
             >
               {t("iAmHere")}
             </button>
@@ -320,7 +320,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
     <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 pt-3 bg-gradient-to-t from-[#1a1820] to-transparent pointer-events-none">
       <button
         onClick={onSkip}
-        className="pointer-events-auto text-[#7a6e65] hover:text-amber-700 text-sm underline underline-offset-2 transition-colors px-4 py-2"
+        className="pointer-events-auto text-text-tertiary hover:text-amber-700 text-sm underline underline-offset-2 transition-colors px-4 py-2"
       >
         {t("skipNav")}
       </button>

@@ -2,7 +2,7 @@ export default function Loading() {
   return (
     <div className="min-h-screen max-w-lg mx-auto">
       {/* Header skeleton */}
-      <div className="sticky top-0 bg-[#1a1820]/95 border-b border-amber-900/30 px-4 pt-4 pb-3">
+      <div className="sticky top-0 bg-bg-primary/95 border-b border-amber-900/30 px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-2">
           <div className="skeleton h-5 w-32" />
           <div className="skeleton h-8 w-16 rounded-lg" />

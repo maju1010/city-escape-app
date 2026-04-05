@@ -58,7 +58,7 @@ export default async function HomePage() {
           className="mx-auto mb-4"
           style={{ maxWidth: 300, width: "100%", height: "auto" }}
         />
-        <p className="text-[#b8a99a] text-sm tracking-wider uppercase">
+        <p className="text-text-secondary text-sm tracking-wider uppercase">
           Vælg din destination
         </p>
         <div className="mt-4 w-16 h-px bg-amber-600 mx-auto" />
@@ -71,7 +71,7 @@ export default async function HomePage() {
       )}
 
       {!error && cities && cities.length === 0 && (
-        <p className="text-[#b8a99a]">Ingen byer fundet.</p>
+        <p className="text-text-secondary">Ingen byer fundet.</p>
       )}
 
       <ContinueBanner />
@@ -87,7 +87,7 @@ export default async function HomePage() {
         ))}
       </div>
 
-      <p className="mt-16 text-[#7a6e65] text-xs tracking-widest uppercase">
+      <p className="mt-16 text-text-tertiary text-xs tracking-widest uppercase">
         Et mordmysterium venter
       </p>
     </main>

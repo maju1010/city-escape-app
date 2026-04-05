@@ -7,7 +7,7 @@ import type { RoutePoint } from "./RouteMapLeaflet";
 const RouteMapLeaflet = dynamic(() => import("./RouteMapLeaflet"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[240px] rounded-xl bg-[#14131f] border border-amber-900/30 flex items-center justify-center text-[#4a4560] text-sm">
+    <div className="w-full h-[240px] rounded-xl bg-bg-card border border-amber-900/30 flex items-center justify-center text-text-tertiary text-sm">
       Indlæser kort…
     </div>
   ),
@@ -62,14 +62,14 @@ export default function ScenarioRouteMap({ points }: { points: RoutePoint[] }) {
         />
       </div>
       <div className="flex justify-between items-center mt-2 px-1">
-        <p className="text-[#6b6380] text-xs">
+        <p className="text-text-tertiary text-xs">
           Ruten er ca.{" "}
           <span className="text-amber-700 font-semibold">{totalKm} km</span>
           {" "}og tager ca.{" "}
           <span className="text-amber-700 font-semibold">{walkMinutes} min</span>
           {" "}at gå
         </p>
-        <p className="text-[#4a4560] text-xs">{points.length} stop</p>
+        <p className="text-text-tertiary text-xs">{points.length} stop</p>
       </div>
     </div>
   );

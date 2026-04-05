@@ -29,7 +29,7 @@ export default function ComingSoonCard({ city }: { city: City }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-amber-900/20 cursor-default">
       {/* Background image */}
-      <div className="relative h-44 w-full bg-[#242232] overflow-hidden">
+      <div className="relative h-44 w-full bg-bg-secondary overflow-hidden">
         {!imgFailed && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -41,7 +41,7 @@ export default function ComingSoonCard({ city }: { city: City }) {
           />
         )}
         {/* Dark overlay 60% */}
-        <div className="absolute inset-0 bg-[#1a1820]/60" />
+        <div className="absolute inset-0 bg-bg-primary/60" />
         {/* Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#1a1820] via-[#1a1820]/40 to-transparent" />
 
@@ -54,12 +54,12 @@ export default function ComingSoonCard({ city }: { city: City }) {
       </div>
 
       {/* Text content */}
-      <div className="relative bg-[#242232] px-5 pb-5 pt-4">
+      <div className="relative bg-bg-secondary px-5 pb-5 pt-4">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-xl font-semibold text-[#7a6e65]">{city.name}</h2>
+          <h2 className="text-xl font-semibold text-text-tertiary">{city.name}</h2>
         </div>
         {city.description && (
-          <p className="text-[#7a6e65] text-sm leading-relaxed">{city.description}</p>
+          <p className="text-text-tertiary text-sm leading-relaxed">{city.description}</p>
         )}
       </div>
     </div>
