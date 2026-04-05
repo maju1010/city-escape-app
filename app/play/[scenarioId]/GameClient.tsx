@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -73,76 +73,97 @@ function getTeamKey(scenarioId: string) {
   return `city-escape-team-${scenarioId}`;
 }
 
-// ── Drum combination lock ──
-const DRUM_H = 52; // height per digit slot in px
+// ── Drum combination lock – CSS scroll-snap ──
+const DRUM_H = 56; // px per digit slot
+const DRUM_REPS = 5; // repeat 0-9 five times for pseudo-infinite scroll
+// scrollTop = itemIndex * DRUM_H  (padding top = DRUM_H cancels out)
+// middle rep starts at index 20
 
 function DrumWheel({ digit, onChange }: { digit: number; onChange: (d: number) => void }) {
-  const [dragOffset, setDragOffset] = useState(0);
-  const dragging = useRef(false);
-  const startY = useRef(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevDigit = useRef(digit);
+  const items = Array.from({ length: 10 * DRUM_REPS }, (_, i) => i % 10);
 
-  function wrap(n: number) { return ((n % 10) + 10) % 10; }
+  function scrollToDigit(d: number, animate = false) {
+    const el = scrollRef.current;
+    if (!el) return;
+    const top = (20 + d) * DRUM_H;
+    if (animate) {
+      el.scrollTo({ top, behavior: "smooth" });
+    } else {
+      el.scrollTop = top;
+    }
+  }
 
-  function commit(raw: number) {
-    const steps = Math.round(-raw / DRUM_H);
-    if (steps !== 0) onChange(wrap(digit + steps));
-    setDragOffset(0);
+  // Mount: jump to current digit in middle repetition
+  useEffect(() => { scrollToDigit(digit); }, []); // eslint-disable-line
+
+  // Externally-driven digit change (e.g. reset): re-center
+  useEffect(() => {
+    if (digit !== prevDigit.current) {
+      prevDigit.current = digit;
+      scrollToDigit(digit);
+    }
+  }, [digit]); // eslint-disable-line
+
+  function handleScroll() {
+    if (commitTimer.current) clearTimeout(commitTimer.current);
+    commitTimer.current = setTimeout(() => {
+      const el = scrollRef.current;
+      if (!el) return;
+      const idx = Math.round(el.scrollTop / DRUM_H);
+      const d = ((idx % 10) + 10) % 10;
+      prevDigit.current = d;
+      if (d !== digit) onChange(d);
+      // Silently re-center if near edges (no event loop since scrollTop assignment won't snap-trigger)
+      if (idx < 5 || idx > 10 * DRUM_REPS - 5) {
+        el.scrollTop = (20 + d) * DRUM_H;
+      }
+    }, 180);
   }
 
   return (
-    <div
-      className="relative overflow-hidden select-none cursor-grab active:cursor-grabbing"
-      style={{ width: 56, height: DRUM_H * 3, touchAction: "none" }}
-      onPointerDown={(e) => {
-        dragging.current = true;
-        startY.current = e.clientY;
-        (e.currentTarget as Element).setPointerCapture(e.pointerId);
-      }}
-      onPointerMove={(e) => {
-        if (!dragging.current) return;
-        setDragOffset(e.clientY - startY.current);
-      }}
-      onPointerUp={() => { if (!dragging.current) return; dragging.current = false; commit(dragOffset); }}
-      onPointerCancel={() => { dragging.current = false; setDragOffset(0); }}
-      onWheel={(e) => { e.preventDefault(); onChange(wrap(digit + (e.deltaY > 0 ? 1 : -1))); }}
-    >
-      {/* Digit strip */}
+    <div className="relative select-none" style={{ width: 56, height: DRUM_H * 3 }}>
+      {/* Scrollable column */}
       <div
+        ref={scrollRef}
+        className="drum-scroll"
+        onScroll={handleScroll}
         style={{
-          transform: `translateY(${dragOffset}px)`,
-          transition: dragOffset === 0 ? "transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94)" : "none",
+          width: "100%",
+          height: "100%",
+          overflowY: "scroll",
+          scrollSnapType: "y mandatory",
+          WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
         }}
       >
-        {([-2, -1, 0, 1, 2] as const).map((rel) => {
-          const d = wrap(digit + rel);
-          const isCenter = rel === 0;
-          const dist = Math.abs(rel);
-          return (
-            <div
-              key={rel}
-              style={{
-                position: "absolute",
-                top: (rel + 1) * DRUM_H,
-                width: "100%",
-                height: DRUM_H,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: isCenter ? "2.1rem" : dist === 1 ? "1.35rem" : "0.9rem",
-                fontWeight: "bold",
-                color: isCenter ? "#fbbf24" : dist === 1 ? "#92601a" : "#2e2a40",
-                opacity: isCenter ? 1 : dist === 1 ? 0.6 : 0.2,
-                transform: `perspective(130px) rotateX(${-rel * 30}deg)`,
-                transformOrigin: "center center",
-              }}
-            >
-              {d}
-            </div>
-          );
-        })}
+        {/* Top spacer so first item can center */}
+        <div style={{ height: DRUM_H, flexShrink: 0 }} />
+        {items.map((d, i) => (
+          <div
+            key={i}
+            style={{
+              height: DRUM_H,
+              scrollSnapAlign: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "2rem",
+              fontWeight: "bold",
+              color: "#fbbf24",
+              fontVariantNumeric: "tabular-nums",
+              userSelect: "none",
+            }}
+          >
+            {d}
+          </div>
+        ))}
+        {/* Bottom spacer */}
+        <div style={{ height: DRUM_H, flexShrink: 0 }} />
       </div>
 
-      {/* Center selection lines */}
+      {/* Selection highlight */}
       <div
         className="absolute inset-x-0 pointer-events-none"
         style={{
@@ -150,16 +171,18 @@ function DrumWheel({ digit, onChange }: { digit: number; onChange: (d: number) =
           height: DRUM_H,
           borderTop: "1.5px solid #92400e",
           borderBottom: "1.5px solid #92400e",
-          background: "rgba(146,64,14,0.06)",
+          background: "rgba(146,64,14,0.08)",
         }}
       />
+      {/* Fade edges */}
+      <div className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: DRUM_H, background: "linear-gradient(to bottom, #0d0c17 30%, transparent)" }} />
+      <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: DRUM_H, background: "linear-gradient(to top, #0d0c17 30%, transparent)" }} />
     </div>
   );
 }
 
-function DrumLock({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const numDigits = Math.max(value.replace(/\D/g, "").length || 4, 1);
-  const digits = value.padStart(numDigits, "0").split("").slice(0, numDigits).map(Number);
+function DrumLock({ value, numDigits, onChange }: { value: string; numDigits: number; onChange: (v: string) => void }) {
+  const digits = value.padStart(numDigits, "0").slice(0, numDigits).split("").map(Number);
 
   function setDigit(i: number, d: number) {
     const next = [...digits];
@@ -169,7 +192,7 @@ function DrumLock({ value, onChange }: { value: string; onChange: (v: string) =>
 
   return (
     <div className="flex justify-center my-5">
-      <div className="relative bg-[#0d0c17] border-2 border-amber-900/60 rounded-2xl px-5 py-3 flex gap-2 items-center shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
+      <div className="relative bg-[#0d0c17] border-2 border-amber-900/60 rounded-2xl px-4 py-3 flex gap-3 items-center shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
         <div className="absolute inset-0 rounded-2xl bg-amber-900/5 pointer-events-none" />
         {digits.map((d, i) => (
           <DrumWheel key={i} digit={d} onChange={(v) => setDigit(i, v)} />
@@ -417,6 +440,10 @@ export default function GameClient({
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewSending, setReviewSending] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+  // Test navigation (activated by 5 quick taps on progress bar)
+  const [testMode, setTestMode] = useState(false);
+  const progressTaps = useRef(0);
+  const progressTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Intro + animation states
   const [showIntro, setShowIntro] = useState(false);
   const [showGoldRain, setShowGoldRain] = useState(false);
@@ -642,6 +669,27 @@ export default function GameClient({
     }
   }
 
+  function handleProgressTap() {
+    progressTaps.current++;
+    if (progressTapTimer.current) clearTimeout(progressTapTimer.current);
+    if (progressTaps.current >= 5) {
+      progressTaps.current = 0;
+      setTestMode((v) => !v);
+    } else {
+      progressTapTimer.current = setTimeout(() => { progressTaps.current = 0; }, 1500);
+    }
+  }
+
+  function jumpToTask(idx: number) {
+    setCurrentIndex(idx);
+    setShowNavigation(true);
+    setTextAnswer("");
+    setAnswerState("idle");
+    setHintsShown(0);
+    setPhotoUploaded(false);
+    setLockValue("0000");
+  }
+
   function handleShowHint() {
     if (hintsShown < 3) {
       playHint();
@@ -684,6 +732,23 @@ export default function GameClient({
       ? `https://www.google.com/maps?q=${task.latitude},${task.longitude}`
       : null;
   const choices = task?.choices ? task.choices.split("|").map((c) => c.trim()) : [];
+
+  // Fisher-Yates shuffle – re-randomised each time a new task is shown
+  const shuffledChoices = useMemo(() => {
+    if (choices.length === 0) return choices;
+    const arr = [...choices];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task?.id]); // shuffle once per task (stable within session, random across games)
+
+  // Number of digits for combination lock – derived from the answer
+  const lockDigits = task?.answer_type === "combination_lock"
+    ? Math.max(task.answer.replace(/\D/g, "").length, 1)
+    : 4;
 
   // ── Finished screen ──
   if (finished) {
@@ -857,7 +922,7 @@ export default function GameClient({
               <span className="text-xs text-[#6b6380] tracking-wider uppercase truncate mr-3">{scenario.title}</span>
               <span className="text-xs text-amber-700 shrink-0">{currentIndex + 1} / {tasks.length}</span>
             </div>
-            <div className="w-full h-2 bg-[#2a2840] rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-[#2a2840] rounded-full overflow-hidden cursor-pointer" onClick={handleProgressTap}>
               <div
                 className="h-2 bg-gradient-to-r from-amber-700 to-amber-400 rounded-full transition-all duration-500"
                 style={{ width: `${((currentIndex + 1) / tasks.length) * 100}%` }}
@@ -962,11 +1027,11 @@ export default function GameClient({
               </p>
             )}
           </div>
-        ) : task.answer_type === "multiple_choice" && choices.length > 0 ? (
+        ) : task.answer_type === "multiple_choice" && shuffledChoices.length > 0 ? (
           /* Multiple choice */
           <div className="mb-6">
             <div className="flex flex-col gap-3">
-              {choices.map((choice, i) => (
+              {shuffledChoices.map((choice, i) => (
                 <button
                   key={i}
                   onClick={() => handleCheckAnswer(choice)}
@@ -995,6 +1060,7 @@ export default function GameClient({
             </p>
             <DrumLock
               value={lockValue}
+              numDigits={lockDigits}
               onChange={(v) => { setLockValue(v); if (answerState === "wrong") setAnswerState("idle"); }}
             />
             <button
@@ -1131,6 +1197,29 @@ export default function GameClient({
         </div>{/* close px-4 py-5 */}
       </main>
     </div>
+
+    {/* Test navigation overlay – activated by 5 taps on progress bar */}
+    {testMode && (
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0d0c17]/95 border-t border-gray-700/50 px-4 py-2 flex items-center justify-between">
+        <button
+          onClick={() => currentIndex > 0 && jumpToTask(currentIndex - 1)}
+          disabled={currentIndex === 0}
+          className="text-gray-400 hover:text-gray-200 text-sm px-3 py-1.5 disabled:opacity-30 transition-colors"
+        >
+          ← Forrige
+        </button>
+        <span className="text-gray-600 text-xs tracking-wider">
+          TEST · opgave {currentIndex + 1} / {tasks.length}
+        </span>
+        <button
+          onClick={() => currentIndex < tasks.length - 1 && jumpToTask(currentIndex + 1)}
+          disabled={currentIndex >= tasks.length - 1}
+          className="text-gray-400 hover:text-gray-200 text-sm px-3 py-1.5 disabled:opacity-30 transition-colors"
+        >
+          Næste →
+        </button>
+      </div>
+    )}
     </>
   );
 }

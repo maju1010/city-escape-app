@@ -124,13 +124,19 @@ export default async function LeaderboardPage({
                     </p>
                     <p className="text-[#6b6380] text-xs mt-0.5">
                       {formatDate(entry.created_at)}
-                      {entry.hints_used > 0 && ` · ${entry.hints_used} hint${entry.hints_used !== 1 ? "s" : ""}`}
                     </p>
                   </div>
 
-                  {/* Time */}
-                  <div className={`font-mono font-bold text-lg tabular-nums shrink-0 ${isTop3 ? rankColor : "text-amber-700"}`}>
-                    {formatTime(entry.completion_time_seconds)}
+                  {/* Time + hints */}
+                  <div className="flex flex-col items-end shrink-0 gap-0.5">
+                    <div className={`font-mono font-bold text-lg tabular-nums ${isTop3 ? rankColor : "text-amber-700"}`}>
+                      ⏱ {formatTime(entry.completion_time_seconds)}
+                    </div>
+                    <div className="text-[#6b6380] text-xs tabular-nums">
+                      {entry.hints_used > 0
+                        ? `💡 ${entry.hints_used} hint${entry.hints_used !== 1 ? "s" : ""}`
+                        : "💡 0 hints"}
+                    </div>
                   </div>
                 </div>
               );

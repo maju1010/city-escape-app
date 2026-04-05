@@ -78,6 +78,10 @@ body {
   100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
 }
 
+/* ── Drum lock: hide scrollbar ── */
+.drum-scroll::-webkit-scrollbar { display: none; }
+.drum-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ── prefers-reduced-motion: disable all custom animations ── */
 @media (prefers-reduced-motion: reduce) {
   .answer-shake,
