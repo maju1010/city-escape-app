@@ -37,6 +37,25 @@ function tone(
   osc.stop(startTime + duration + 0.01);
 }
 
+/** Typewriter-klik: diskret, højfrekvent tapping */
+export function playTypeTick() {
+  try {
+    const c = getCtx();
+    if (c.state !== "running") return;
+    const now = c.currentTime;
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = "square";
+    osc.frequency.value = 1800 + Math.random() * 400;
+    osc.connect(gain);
+    gain.connect(c.destination);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+    osc.start(now);
+    osc.stop(now + 0.026);
+  } catch { /* ignore */ }
+}
+
 /** Korrekt svar: opstigende C-E-G swell */
 export function playCorrect() {
   try {

@@ -135,7 +135,9 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
   const [playerPos, setPlayerPos] = useState<{ lat: number; lon: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [geoBlocked, setGeoBlocked] = useState(false);
-  const [heading, setHeading] = useState<number>(0); // degrees from north
+  const [heading, setHeading] = useState<number>(0);       // smoothed device-orientation heading
+  const [gpsHeading, setGpsHeading] = useState<number | null>(null); // heading from GPS
+  const [gpsSpeed, setGpsSpeed] = useState<number | null>(null);     // m/s from GPS
   const [orientationGranted, setOrientationGranted] = useState(false);
   const [needsOrientationPermission, setNeedsOrientationPermission] = useState(false);
   const [displayedDistance, setDisplayedDistance] = useState<number | null>(null);
@@ -152,6 +154,10 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
         setGeoBlocked(false);
         setGeoError(null);
         setPlayerPos({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        if (pos.coords.speed !== null) setGpsSpeed(pos.coords.speed);
+        if (pos.coords.heading !== null && !isNaN(pos.coords.heading)) {
+          setGpsHeading(pos.coords.heading);
+        }
       },
       (err) => {
         if (err.code === 1 /* PERMISSION_DENIED */) {
@@ -166,6 +172,14 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
   }, []);
 
   // Device orientation
+  // LERP helper that always takes the shortest arc (handles 359°→1° wraparound)
+  function lerpHeading(prev: number, next: number, factor: number) {
+    let delta = next - prev;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    return (prev + delta * factor + 360) % 360;
+  }
+
   const startOrientation = useCallback(() => {
     function handler(e: DeviceOrientationEvent) {
       // iOS gives webkitCompassHeading (clockwise from north)
@@ -173,9 +187,9 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
       const ios = (e as DeviceOrientationEvent & { webkitCompassHeading?: number })
         .webkitCompassHeading;
       if (ios !== undefined && ios !== null) {
-        setHeading(ios);
+        setHeading((prev) => lerpHeading(prev, ios, 0.2));
       } else if (e.alpha !== null) {
-        setHeading((360 - e.alpha) % 360);
+        setHeading((prev) => lerpHeading(prev, (360 - e.alpha!) % 360, 0.2));
       }
     }
     window.addEventListener("deviceorientation", handler);
@@ -243,7 +257,10 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
 
   const bearing =
     playerPos ? getBearing(playerPos.lat, playerPos.lon, task.latitude, task.longitude) : 0;
-  const needleRotation = bearing - heading;
+  // Use GPS course heading when moving (>1 m/s); fall back to device orientation
+  const usingGpsCourse = gpsSpeed !== null && gpsSpeed > 1 && gpsHeading !== null;
+  const effectiveHeading = usingGpsCourse ? gpsHeading! : heading;
+  const needleRotation = bearing - effectiveHeading;
   const isNearby = distance !== null && distance <= 50;
 
   // Haptic feedback when player arrives
@@ -325,6 +342,9 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
         {/* Compass – hidden while GPS is blocked */}
         {!geoBlocked && <div className="flex flex-col items-center gap-2">
           <p className="text-xs text-text-tertiary tracking-widest uppercase">Kompas</p>
+          <p className="text-[10px] text-text-tertiary text-center">
+            {usingGpsCourse ? "📡 Bruger GPS-kurs" : "📱 Hold telefonen vandret"}
+          </p>
 
           {needsOrientationPermission && !orientationGranted ? (
             <button
@@ -376,7 +396,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
               {/* Rotating needle */}
               <div
                 className="absolute inset-0 flex items-center justify-center transition-transform duration-300"
-                style={{ transform: `rotate(${needleRotation}deg)` }}
+                style={{ transform: `rotate(${needleRotation}deg)`, transition: usingGpsCourse ? "transform 0.8s ease-out" : "transform 0.3s ease-out" }}
               >
                 <svg viewBox="0 0 144 144" className="w-full h-full absolute inset-0">
                   {/* Arrow pointing up = toward destination */}

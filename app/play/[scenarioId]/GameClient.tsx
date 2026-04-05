@@ -6,7 +6,7 @@ import Link from "next/link";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import NavigationView from "./NavigationView";
-import { playHint, playDing, playFanfare } from "@/lib/sounds";
+import { playHint, playDing, playFanfare, playTypeTick } from "@/lib/sounds";
 import { useI18n } from "@/lib/useI18n";
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
@@ -208,6 +208,54 @@ export type Scenario = {
   title: string;
   intro: string;
 };
+
+// ── Typewriter narrative ──
+function TypewriterText({ text }: { text: string }) {
+  const [revealed, setRevealed] = useState(0);
+  const [done, setDone] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const skip = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setRevealed(text.length);
+    setDone(true);
+  }, [text.length]);
+
+  useEffect(() => {
+    setRevealed(0);
+    setDone(false);
+    let i = 0;
+    intervalRef.current = setInterval(() => {
+      i++;
+      setRevealed(i);
+      // Play tick every 3 chars — not on spaces/punctuation to keep it natural
+      const ch = text[i - 1];
+      if (i % 3 === 0 && ch && !/[\s,.]/.test(ch)) playTypeTick();
+      if (i >= text.length) {
+        clearInterval(intervalRef.current!);
+        setDone(true);
+      }
+    }, 30);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [text]);
+
+  return (
+    <div onClick={skip} className="cursor-pointer select-none" title="Tryk for at springe frem">
+      {text.slice(0, revealed)}
+      {!done && (
+        <span
+          className="inline-block w-[2px] h-[1em] bg-amber-500 ml-[1px] align-middle"
+          style={{ animation: "pulse-blink 0.7s step-start infinite" }}
+        />
+      )}
+      {!done && (
+        <span className="block text-[10px] text-text-tertiary mt-2 not-italic tracking-wide">
+          Tryk for at springe frem →
+        </span>
+      )}
+    </div>
+  );
+}
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60).toString().padStart(2, "0");
@@ -1113,7 +1161,7 @@ function GameClientInner({
 
             {task.narrative_intro && (
               <div className="bg-narrative-bg border-l-4 border-narrative-border rounded-r-xl px-5 py-4 mb-5 italic text-text-secondary text-[17px] leading-relaxed">
-                {task.narrative_intro}
+                <TypewriterText key={task.id} text={task.narrative_intro} />
               </div>
             )}
 
