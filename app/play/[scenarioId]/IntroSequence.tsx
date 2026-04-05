@@ -34,6 +34,7 @@ export default function IntroSequence({
   const [phase, setPhase] = useState<"text1" | "image" | "text2" | "done">("text1");
   const [typed1, setTyped1] = useState("");
   const [typed2, setTyped2] = useState("");
+  const [showLogo, setShowLogo] = useState(false);
   const [cursor, setCursor] = useState(true);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
@@ -66,7 +67,8 @@ export default function IntroSequence({
             playTypeClick();
             if (j >= TEXT_2.length) {
               clearInterval(iv2);
-              setTimeout(() => onCompleteRef.current(), 1400);
+              setTimeout(() => setShowLogo(true), 300);
+              setTimeout(() => onCompleteRef.current(), 1800);
             }
           }, 80);
         }, 1800);
@@ -167,6 +169,25 @@ export default function IntroSequence({
               )}
             </motion.p>
           )}
+
+          {/* Logo dramatic fade-in at the very end */}
+          <AnimatePresence>
+            {showLogo && (
+              <motion.div
+                className="mt-8 flex justify-center"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://paitcrtbdcvujhpfpbhw.supabase.co/storage/v1/object/public/images/Logo.png"
+                  alt="City Escape"
+                  style={{ maxWidth: 240, width: "100%", height: "auto" }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
     </AnimatePresence>

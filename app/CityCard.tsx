@@ -59,6 +59,13 @@ export default function CityCard({ city }: { city: City }) {
           )}
           {/* Dark gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f0e17] via-[#0f0e17]/50 to-transparent" />
+
+          {/* "Tilgængeligt nu" badge */}
+          <div className="absolute top-3 right-3">
+            <span className="bg-green-900/80 border border-green-700/60 text-green-300 text-[10px] font-semibold tracking-widest uppercase px-2.5 py-1 rounded-full">
+              Tilgængeligt nu
+            </span>
+          </div>
         </div>
 
         {/* Text content */}

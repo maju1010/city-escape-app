@@ -760,6 +760,21 @@ export default function GameClient({
 
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center py-12">
+        {/* Logo */}
+        <motion.div
+          className="mb-6"
+          initial={shouldReduce ? false : { opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://paitcrtbdcvujhpfpbhw.supabase.co/storage/v1/object/public/images/Logo.png"
+            alt="City Escape"
+            style={{ maxWidth: 200, width: "100%", height: "auto" }}
+          />
+        </motion.div>
+
         <motion.div
           className="text-6xl mb-4"
           initial={shouldReduce ? false : { scale: 0, opacity: 0 }}
