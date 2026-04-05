@@ -10,6 +10,7 @@ import QRShare from "./QRShare";
 import GoldRain from "./GoldRain";
 import TaskTransition from "./TaskTransition";
 import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/sounds";
+import { useI18n } from "@/lib/useI18n";
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
 import { getLocationImage } from "@/lib/locationImages";
@@ -516,6 +517,7 @@ function GameClientInner({
   const [transitionTitle, setTransitionTitle] = useState("");
   const [transitionTaskNumber, setTransitionTaskNumber] = useState(1);
   const shouldReduce = useReducedMotion();
+  const { t } = useI18n();
   const [showRewardBanner, setShowRewardBanner] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const answerAreaRef = useRef<HTMLDivElement>(null);
@@ -655,7 +657,7 @@ function GameClientInner({
             onClick={handleStartGame}
             className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl text-base btn-glow"
           >
-            Start spillet →
+            {t("startGame")}
           </button>
           <p className="text-center text-[#4a4560] text-xs mt-3">
             Lad feltet stå tomt for at bruge &ldquo;Holdet&rdquo;
@@ -1003,9 +1005,20 @@ function GameClientInner({
         <header className="sticky top-0 z-10 bg-[#0f0e17]/95 backdrop-blur border-b border-amber-900/30 px-4 pt-4 pb-3">
           <div className="max-w-lg mx-auto">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-amber-300 font-semibold text-base truncate max-w-[60%]">{teamName}</span>
-              <div className="bg-[#1a1828] border border-amber-900/40 rounded-lg px-3 py-1.5 text-amber-400 font-mono text-base tabular-nums">
-                {formatTime(elapsed)}
+              <span className="text-amber-300 font-semibold text-base truncate max-w-[55%]">{teamName}</span>
+              <div className="flex items-center gap-2">
+                <div className="bg-[#1a1828] border border-amber-900/40 rounded-lg px-3 py-1.5 text-amber-400 font-mono text-base tabular-nums">
+                  {formatTime(elapsed)}
+                </div>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent("openBurgerMenu"))}
+                  aria-label="Menu"
+                  className="w-9 h-9 flex flex-col items-center justify-center gap-[4px] rounded-lg bg-[#1a1828] border border-amber-900/40 hover:border-amber-600 transition-colors shrink-0"
+                >
+                  <span className="block w-4 h-[2px] bg-amber-500 rounded-full" />
+                  <span className="block w-4 h-[2px] bg-amber-500 rounded-full" />
+                  <span className="block w-4 h-[2px] bg-amber-500 rounded-full" />
+                </button>
               </div>
             </div>
             <div className="flex items-center justify-between mb-1.5">
@@ -1043,11 +1056,22 @@ function GameClientInner({
       <header className="sticky top-0 z-10 bg-[#0f0e17]/95 backdrop-blur border-b border-amber-900/30 px-4 pt-4 pb-3">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-amber-300 font-semibold text-base truncate max-w-[60%]">
+            <span className="text-amber-300 font-semibold text-base truncate max-w-[55%]">
               {teamName}
             </span>
-            <div className="bg-[#1a1828] border border-amber-900/40 rounded-lg px-3 py-1.5 text-amber-400 font-mono text-base tabular-nums">
-              {formatTime(elapsed)}
+            <div className="flex items-center gap-2">
+              <div className="bg-[#1a1828] border border-amber-900/40 rounded-lg px-3 py-1.5 text-amber-400 font-mono text-base tabular-nums">
+                {formatTime(elapsed)}
+              </div>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("openBurgerMenu"))}
+                aria-label="Menu"
+                className="w-9 h-9 flex flex-col items-center justify-center gap-[4px] rounded-lg bg-[#1a1828] border border-amber-900/40 hover:border-amber-600 transition-colors shrink-0"
+              >
+                <span className="block w-4 h-[2px] bg-amber-500 rounded-full" />
+                <span className="block w-4 h-[2px] bg-amber-500 rounded-full" />
+                <span className="block w-4 h-[2px] bg-amber-500 rounded-full" />
+              </button>
             </div>
           </div>
           <div className="flex items-center justify-between mb-1.5">
@@ -1113,7 +1137,7 @@ function GameClientInner({
             onClick={() => setShowNavigation(true)}
             className="mb-4 text-sm text-amber-700 hover:text-amber-500 underline underline-offset-2 transition-colors flex items-center gap-1"
           >
-            ← Vis rute til lokation
+            {t("showRouteAgain")}
           </button>
         )}
 
@@ -1168,10 +1192,10 @@ function GameClientInner({
               onClick={() => handleCheckAnswer(lockValue)}
               className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
             >
-              Lås op
+              {t("unlock")}
             </button>
             {answerState === "wrong" && (
-              <p className="text-red-400 text-sm mt-3 text-center">Forkert kode – prøv igen.</p>
+              <p className="text-red-400 text-sm mt-3 text-center">{t("wrongLock")}</p>
             )}
           </div>
         ) : task.answer_type === "number_picker" ? (
@@ -1250,7 +1274,7 @@ function GameClientInner({
               disabled={!textAnswer.trim()}
               className="w-full mt-3 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/40 disabled:text-amber-800 text-[#0f0e17] font-semibold py-4 rounded-xl text-base btn-glow disabled:shadow-none"
             >
-              Tjek svar
+              {t("checkAnswer")}
             </button>
           </div>
         )}
@@ -1280,7 +1304,7 @@ function GameClientInner({
                 onClick={handleShowHint}
                 className="text-amber-800 hover:text-amber-600 text-sm underline underline-offset-2 transition-colors"
               >
-                Få et hint {hintsShown > 0 ? `(${hintsShown}/${hints.length})` : ""}
+                {t("getHint")} {hintsShown > 0 ? `(${hintsShown}/${hints.length})` : ""}
               </button>
             )}
           </div>
@@ -1292,7 +1316,7 @@ function GameClientInner({
             onClick={handleNextTask}
             className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl text-base btn-glow"
           >
-            {currentIndex + 1 >= tasks.length ? "Se resultat 🏆" : "Næste opgave →"}
+            {currentIndex + 1 >= tasks.length ? t("seeResult") : t("nextTask")}
           </button>
         )}
         </div>{/* close px-4 py-5 */}
@@ -1315,22 +1339,20 @@ function GameClientInner({
     {showExitModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm">
         <div className="bg-[#14131f] border border-amber-900/40 rounded-2xl p-6 w-full max-w-sm shadow-xl">
-          <h2 className="text-amber-300 font-bold text-lg mb-2">Afslutte spillet?</h2>
-          <p className="text-[#a09880] text-sm leading-relaxed mb-6">
-            Dit fremskridt er gemt automatisk. Du kan fortsætte spillet senere.
-          </p>
+          <h2 className="text-amber-300 font-bold text-lg mb-2">{t("exitTitle")}</h2>
+          <p className="text-[#a09880] text-sm leading-relaxed mb-6">{t("exitBody")}</p>
           <div className="flex flex-col gap-3">
             <button
               onClick={() => setShowExitModal(false)}
               className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-3 rounded-xl text-base btn-glow"
             >
-              Fortsæt spillet
+              {t("continueGame")}
             </button>
             <button
               onClick={() => { window.location.href = "/"; }}
               className="w-full border border-amber-900/40 hover:border-amber-700 text-amber-800 hover:text-amber-600 font-semibold py-3 rounded-xl text-base transition-colors"
             >
-              Afslut
+              {t("quitGame")}
             </button>
           </div>
         </div>

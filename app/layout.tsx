@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import BurgerMenu from "./components/BurgerMenu";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +19,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="da" className={`${geist.variable} h-full antialiased`}>
+    <html lang="da" className={`${geist.variable} h-full antialiased dark`}>
+      <head>
+        {/* Apply saved theme before first paint to avoid flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('cityescape_theme')||'dark';document.documentElement.classList.remove('dark','light');document.documentElement.classList.add(t);})();`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-[#0f0e17] text-[#e8e0d0]">
+        <BurgerMenu />
         {children}
       </body>
     </html>

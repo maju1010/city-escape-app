@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useI18n } from "@/lib/useI18n";
 import dynamic from "next/dynamic";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Task } from "./GameClient";
@@ -46,6 +47,7 @@ type Props = {
 
 export default function NavigationView({ task, onArrived, onSkip }: Props) {
   const shouldReduce = useReducedMotion();
+  const { t } = useI18n();
   const [playerPos, setPlayerPos] = useState<{ lat: number; lon: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [heading, setHeading] = useState<number>(0); // degrees from north
@@ -189,7 +191,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
           {geoError ? (
             <p className="text-[#a09880] text-sm">{geoError}</p>
           ) : displayedDistance === null ? (
-            <p className="text-[#6b6380] text-sm">Henter din placering…</p>
+            <p className="text-[#6b6380] text-sm">{t("fetchingLocation")}</p>
           ) : (
             <>
               <p className="text-3xl font-bold text-amber-300 tabular-nums">
@@ -200,7 +202,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
               <p className="text-[#a09880] text-sm mt-1">fra {task.location_name}</p>
               {isNearby && (
                 <p className="text-green-400 text-xs mt-1 font-semibold">
-                  ✓ Du er fremme!
+                  {t("arrived")}
                 </p>
               )}
             </>
@@ -304,7 +306,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
               onClick={onArrived}
               className="w-full py-4 rounded-xl font-semibold text-base bg-amber-600 hover:bg-amber-500 text-[#0f0e17] btn-glow transition-all"
             >
-              Jeg er fremme →
+              {t("iAmHere")}
             </button>
           </div>
 
@@ -318,7 +320,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
         onClick={onSkip}
         className="pointer-events-auto text-[#4a4560] hover:text-amber-700 text-sm underline underline-offset-2 transition-colors px-4 py-2"
       >
-        Spring navigation over
+        {t("skipNav")}
       </button>
     </div>
     </>

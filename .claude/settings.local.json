@@ -19,7 +19,8 @@
       "Bash(git config:*)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=800&q=80\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://picsum.photos/seed/aarhus/800/400\")",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(xxd /Users/martin/city-escape-app/app/page.tsx)"
     ]
   }
 }
