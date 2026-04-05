@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
+import ScenarioRouteMap from "./ScenarioRouteMap";
+import type { RoutePoint } from "./RouteMapLeaflet";
 
 type Scenario = {
   id: string;
@@ -13,6 +15,14 @@ type City = {
   id: string;
   name: string;
   description: string;
+};
+
+type TaskCoord = {
+  scenario_id: string;
+  order_number: number;
+  latitude: number;
+  longitude: number;
+  title: string;
 };
 
 export default async function CityPage({
@@ -30,6 +40,18 @@ export default async function CityPage({
       .eq("city_id", id)
       .order("title"),
   ]);
+
+  // Fetch task coordinates for all scenarios
+  const scenarioIds = (scenarios ?? []).map((s) => s.id);
+  const { data: taskCoords } = scenarioIds.length > 0
+    ? await supabase
+        .from("tasks")
+        .select("scenario_id, order_number, latitude, longitude, title")
+        .in("scenario_id", scenarioIds)
+        .not("latitude", "is", null)
+        .not("longitude", "is", null)
+        .order("order_number")
+    : { data: [] };
 
   if (!city) notFound();
 
@@ -65,7 +87,17 @@ export default async function CityPage({
         )}
 
         <div className="flex flex-col gap-5">
-          {(scenarios as Scenario[])?.map((scenario) => (
+          {(scenarios as Scenario[])?.map((scenario) => {
+            const routePoints: RoutePoint[] = (taskCoords ?? [])
+              .filter((t): t is TaskCoord => t.scenario_id === scenario.id)
+              .map((t) => ({
+                lat: t.latitude,
+                lon: t.longitude,
+                order: t.order_number,
+                title: t.title,
+              }));
+
+            return (
             <div
               key={scenario.id}
               className="bg-[#1a1828] border border-amber-900/40 rounded-xl p-6"
@@ -87,6 +119,10 @@ export default async function CityPage({
                 </p>
               )}
 
+              {routePoints.length > 0 && (
+                <ScenarioRouteMap points={routePoints} />
+              )}
+
               <Link
                 href={`/play/${scenario.id}`}
                 className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base py-3 rounded-lg transition-colors"
@@ -94,7 +130,8 @@ export default async function CityPage({
                 Start spillet
               </Link>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </main>

@@ -8,6 +8,7 @@ import NavigationView from "./NavigationView";
 import QRShare from "./QRShare";
 import GoldRain from "./GoldRain";
 import TaskTransition from "./TaskTransition";
+import IntroSequence from "./IntroSequence";
 import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/sounds";
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
@@ -352,7 +353,14 @@ export default function GameClient({
   const [finalTime, setFinalTime] = useState(0);
   const [copied, setCopied] = useState(false);
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
-  // Animation states
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHover, setReviewHover] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [reviewSending, setReviewSending] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  // Intro + animation states
+  const [showIntro, setShowIntro] = useState(false);
   const [showGoldRain, setShowGoldRain] = useState(false);
   const [transitionActive, setTransitionActive] = useState(false);
   const [transitionTitle, setTransitionTitle] = useState("");
@@ -434,6 +442,20 @@ export default function GameClient({
     localStorage.setItem(getTeamKey(scenario.id), name);
     saveActiveGame(name, 0);
     setTeamName(name);
+    setShowIntro(true); // Show intro for fresh game start
+  }
+
+  // ── Intro sequence ──
+  if (showIntro) {
+    const firstTaskImage = tasks[0]
+      ? getLocationImage(tasks[0].location_name || "", tasks[0].image_url)
+      : null;
+    return (
+      <IntroSequence
+        missionImageSrc={firstTaskImage}
+        onComplete={() => setShowIntro(false)}
+      />
+    );
   }
 
   if (!teamName) {
@@ -570,6 +592,24 @@ export default function GameClient({
     }
   }
 
+  async function handleSubmitReview() {
+    if (reviewRating === 0 || reviewSending) return;
+    setReviewSending(true);
+    setReviewError(null);
+    const { error } = await supabase.from("reviews").insert({
+      scenario_id: scenario.id,
+      team_name: teamName,
+      rating: reviewRating,
+      comment: reviewComment.trim() || null,
+    });
+    setReviewSending(false);
+    if (error) {
+      setReviewError(error.message);
+    } else {
+      setReviewSubmitted(true);
+    }
+  }
+
   function handleShare() {
     const minutes = Math.round(finalTime / 60);
     const text = `${teamName} løste "${scenario.title}" på ${minutes} minut${minutes !== 1 ? "ter" : ""}! 🔍 Prøv selv: city-escape-app.vercel.app`;
@@ -666,6 +706,67 @@ export default function GameClient({
               <p className="text-red-400 text-xs font-mono">{leaderboardError}</p>
             </div>
           )}
+
+          {/* Review section */}
+          <div className="w-full border-t border-amber-900/30 pt-6 mt-2">
+            {reviewSubmitted ? (
+              <motion.div
+                className="text-center"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+              >
+                <p className="text-2xl mb-2">🙏</p>
+                <p className="text-amber-400 font-semibold text-base mb-1">Tak for din feedback!</p>
+                <p className="text-[#6b6380] text-sm">Det hjælper os med at gøre spillet bedre.</p>
+              </motion.div>
+            ) : (
+              <>
+                <p className="text-[#a09880] text-sm font-semibold mb-3 text-center">Hvordan var oplevelsen?</p>
+                {/* Stars */}
+                <div
+                  className="flex justify-center gap-2 mb-4"
+                  onMouseLeave={() => setReviewHover(0)}
+                >
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setReviewRating(star)}
+                      onMouseEnter={() => setReviewHover(star)}
+                      className="text-3xl transition-transform active:scale-90"
+                      style={{
+                        color: star <= (reviewHover || reviewRating) ? "#f59e0b" : "#2a2840",
+                        filter: star <= (reviewHover || reviewRating) ? "drop-shadow(0 0 6px rgba(245,158,11,0.5))" : "none",
+                        transform: star <= (reviewHover || reviewRating) ? "scale(1.1)" : "scale(1)",
+                        transition: "all 0.15s ease",
+                      }}
+                      aria-label={`${star} stjerne${star !== 1 ? "r" : ""}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                {/* Comment */}
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Fortæl os hvad du synes (valgfrit)"
+                  rows={3}
+                  maxLength={500}
+                  className="w-full bg-[#1a1828] border border-amber-900/30 focus:border-amber-700 rounded-xl px-4 py-3 text-[#e8e0d0] text-sm placeholder-[#4a4560] outline-none transition-colors resize-none mb-3"
+                />
+                {reviewError && (
+                  <p className="text-red-400 text-xs mb-2">{reviewError}</p>
+                )}
+                <button
+                  onClick={handleSubmitReview}
+                  disabled={reviewRating === 0 || reviewSending}
+                  className="w-full py-3 rounded-xl bg-[#1a1828] border border-amber-900/40 hover:border-amber-700 text-amber-700 hover:text-amber-500 font-semibold text-base transition-colors disabled:opacity-40"
+                >
+                  {reviewSending ? "Sender…" : "Send anmeldelse"}
+                </button>
+              </>
+            )}
+          </div>
 
           <Link
             href="/"
