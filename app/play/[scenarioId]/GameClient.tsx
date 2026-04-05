@@ -574,12 +574,10 @@ function GameClientInner({
   const [transitionTaskNumber, setTransitionTaskNumber] = useState(1);
   const shouldReduce = useReducedMotion();
   const { t } = useI18n();
-  const [showRewardBanner, setShowRewardBanner] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const answerAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const rewardTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Restore saved team name and progress
   useEffect(() => {
@@ -727,8 +725,6 @@ function GameClientInner({
   }
 
   async function handleNextTask() {
-    setShowRewardBanner(false);
-    if (rewardTimerRef.current) clearTimeout(rewardTimerRef.current);
     if (currentIndex + 1 >= tasks.length) {
       if (timerRef.current) clearInterval(timerRef.current);
       const key = getStorageKey(scenario.id);
@@ -792,11 +788,17 @@ function GameClientInner({
       setAnswerState("correct");
       playSuccess();
       haptic([50, 30, 50]);
-      // Reward banner
-      if (task.narrative_reward) {
-        if (rewardTimerRef.current) clearTimeout(rewardTimerRef.current);
-        setShowRewardBanner(true);
-        rewardTimerRef.current = setTimeout(() => setShowRewardBanner(false), 3000);
+      // Animate narrative_reward box with a green glow
+      if (task.narrative_reward && !shouldReduce) {
+        requestAnimationFrame(() => {
+          const el = answerAreaRef.current?.querySelector(".reward-box") as HTMLElement | null;
+          if (el) {
+            el.classList.remove("reward-glow");
+            void el.offsetWidth;
+            el.classList.add("reward-glow");
+            setTimeout(() => el.classList.remove("reward-glow"), 1000);
+          }
+        });
       }
       // Green ring + gold rain
       if (!shouldReduce) {
@@ -1200,10 +1202,10 @@ function GameClientInner({
         {/* Answer area */}
         <div ref={answerAreaRef} key={task?.id}>
         {taskSolved && answerState !== "correct" ? null : answerState === "correct" ? (
-          <div className="bg-[#1a2818] border border-green-800/50 rounded-xl p-5 mb-6">
-            <p className="text-green-400 font-semibold text-base mb-2">✓ Korrekt svar!</p>
+          <div className="reward-box bg-[#1a2818] border border-green-800/50 rounded-xl p-5 mb-6">
+            <p className="text-green-400 font-semibold text-base mb-2">{t("correct")}</p>
             {task.narrative_reward && (
-              <p className="text-[#a8c8a0] text-base leading-relaxed italic">
+              <p className="text-[#a8c8a0] text-[17px] leading-relaxed italic">
                 {task.narrative_reward}
               </p>
             )}
@@ -1381,15 +1383,6 @@ function GameClientInner({
     {/* Spacer so content clears the fixed test bar */}
     <div className="h-8" />
 
-    {/* Reward banner – slides up from bottom on correct answer */}
-    {showRewardBanner && task?.narrative_reward && (
-      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 reward-banner">
-        <div className="max-w-lg mx-auto bg-[#14131f] border border-amber-700/60 rounded-2xl px-5 py-4 shadow-[0_-4px_24px_rgba(245,158,11,0.15)]">
-          <p className="text-amber-400 font-semibold text-sm mb-1.5">✓ Korrekt svar!</p>
-          <p className="text-[#e8e0d0] text-[17px] leading-relaxed">{task.narrative_reward}</p>
-        </div>
-      </div>
-    )}
 
     {/* Exit confirmation modal */}
     {showExitModal && (

@@ -117,7 +117,8 @@ export default function BurgerMenu() {
         <button
           onClick={openMenu}
           aria-label="Åbn menu"
-          className="fixed top-4 right-4 z-[200] w-10 h-10 flex flex-col items-center justify-center gap-[5px] rounded-xl bg-[#1a1828] border border-amber-900/40 hover:border-amber-600 transition-colors shadow-lg"
+          className="fixed top-4 right-4 w-10 h-10 flex flex-col items-center justify-center gap-[5px] rounded-xl bg-[#1a1828] border border-amber-900/40 hover:border-amber-600 transition-colors shadow-lg"
+          style={{ zIndex: 9997 }}
         >
           <span className="block w-5 h-[2px] bg-amber-500 rounded-full" />
           <span className="block w-5 h-[2px] bg-amber-500 rounded-full" />
@@ -128,14 +129,16 @@ export default function BurgerMenu() {
       {/* Backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+          style={{ zIndex: 9998 }}
           onClick={closeMenu}
         />
       )}
 
       {/* Slide-in panel */}
       <div
-        className="fixed top-0 right-0 z-[310] h-full w-[min(340px,90vw)] bg-[#0d0c17] border-l border-amber-900/30 flex flex-col shadow-2xl transition-transform duration-300 ease-out"
+        className="fixed top-0 right-0 h-full w-[min(340px,90vw)] bg-[#0d0c17] border-l border-amber-900/30 flex flex-col shadow-2xl transition-transform duration-300 ease-out"
+        style={{ zIndex: 9999 }}
         style={{ transform: open ? "translateX(0)" : "translateX(100%)" }}
       >
         {/* Panel header */}

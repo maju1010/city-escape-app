@@ -78,9 +78,11 @@ export default async function CityPage({
 
       {/* Scenarios */}
       <div className="w-full max-w-md">
-        <h2 className="text-xs tracking-widest uppercase text-[#6b6380] mb-4">
-          Tilgængelige scenarier
-        </h2>
+        {scenarios && scenarios.length > 1 && (
+          <h2 className="text-xs tracking-widest uppercase text-[#6b6380] mb-4">
+            Tilgængelige scenarier
+          </h2>
+        )}
 
         {scenarios && scenarios.length === 0 && (
           <p className="text-[#a09880] text-sm">Ingen scenarier fundet for denne by.</p>
