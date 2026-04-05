@@ -27,14 +27,20 @@ function getCtx(): AudioContext | null {
 export function unlockAudio() {
   try {
     const c = getCtx();
-    if (!c) return;
-    if (c.state === "suspended") c.resume();
+    if (!c || c.state === "running") return;
+    // resume() is async — also play a silent buffer synchronously so iOS
+    // registers the gesture and marks audio as permitted
+    c.resume();
     const buf = c.createBuffer(1, 1, c.sampleRate);
     const src = c.createBufferSource();
     src.buffer = buf;
     src.connect(c.destination);
     src.start(0);
   } catch { /* ignore */ }
+}
+
+export function isAudioRunning(): boolean {
+  return ctx !== null && ctx.state === "running";
 }
 
 function running(): AudioContext | null {

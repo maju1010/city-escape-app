@@ -6,7 +6,7 @@ import Link from "next/link";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import NavigationView from "./NavigationView";
-import { unlockAudio, playTick, playSuccess, playError, playHint, playDing, playFanfare, playTypeTick } from "@/lib/sounds";
+import { unlockAudio, isAudioRunning, playTick, playSuccess, playError, playHint, playDing, playFanfare, playTypeTick } from "@/lib/sounds";
 import { useI18n } from "@/lib/useI18n";
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
@@ -540,12 +540,16 @@ function GameClientInner({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task?.id]);
 
-  // ── Unlock AudioContext on first user gesture ──
-  // iOS requires this to happen synchronously inside touchstart/click.
+  // ── Unlock AudioContext on user gestures ──
+  // iOS Safari requires AudioContext.resume() inside a touchstart/click.
+  // We retry on every gesture (no { once: true }) so a failed first attempt
+  // doesn't permanently silence the app. unlockAudio() no-ops once running.
   useEffect(() => {
-    const unlock = () => { unlockAudio(); };
-    document.addEventListener("touchstart", unlock, { once: true, passive: true });
-    document.addEventListener("click",      unlock, { once: true });
+    function unlock() {
+      if (!isAudioRunning()) unlockAudio();
+    }
+    document.addEventListener("touchstart", unlock, { passive: true });
+    document.addEventListener("click",      unlock);
     return () => {
       document.removeEventListener("touchstart", unlock);
       document.removeEventListener("click",      unlock);
