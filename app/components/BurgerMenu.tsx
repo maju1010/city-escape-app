@@ -138,8 +138,7 @@ export default function BurgerMenu() {
       {/* Slide-in panel */}
       <div
         className="fixed top-0 right-0 h-full w-[min(340px,90vw)] bg-[#0d0c17] border-l border-amber-900/30 flex flex-col shadow-2xl transition-transform duration-300 ease-out"
-        style={{ zIndex: 9999 }}
-        style={{ transform: open ? "translateX(0)" : "translateX(100%)" }}
+        style={{ zIndex: 9999, transform: open ? "translateX(0)" : "translateX(100%)" }}
       >
         {/* Panel header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-amber-900/20">

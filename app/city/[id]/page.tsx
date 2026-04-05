@@ -2,6 +2,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import ScenarioRouteMap from "./ScenarioRouteMap";
+import StartGameButton from "./StartGameButton";
 import type { RoutePoint } from "./RouteMapLeaflet";
 
 type Scenario = {
@@ -125,12 +126,7 @@ export default async function CityPage({
                 <ScenarioRouteMap points={routePoints} />
               )}
 
-              <Link
-                href={`/play/${scenario.id}`}
-                className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base py-3 rounded-lg transition-colors"
-              >
-                Start spillet
-              </Link>
+              <StartGameButton scenarioId={scenario.id} />
             </div>
             );
           })}
