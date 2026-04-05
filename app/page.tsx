@@ -12,21 +12,21 @@ const COMING_SOON = [
     name: "København",
     description: "Oplev den danske hovedstad – kanaler, slotte og hemmeligheder",
     image_url:
-      "https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=800&q=80",
+      "https://images.unsplash.com/photo-1552560902-59d3e8b6e8f1?w=800&q=80",
   },
   {
     id: "coming-london",
     name: "London",
     description: "Fog, mystery and centuries of secrets await",
     image_url:
-      "https://paitcrtbdcvujhpfpbhw.supabase.co/storage/v1/object/public/images/1775370582109_London_tower.png",
+      "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80",
   },
   {
     id: "coming-berlin",
     name: "Berlin",
     description: "Geschichte, Geheimnisse und ein verschwundener Agent",
     image_url:
-      "https://paitcrtbdcvujhpfpbhw.supabase.co/storage/v1/object/public/images/1775370582109_Berlin_Brandenburg.png",
+      "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&q=80",
   },
 ];
 
