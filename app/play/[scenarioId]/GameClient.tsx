@@ -691,7 +691,10 @@ function GameClientInner({
 
   // ── Scroll to top on every task / phase change ──
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const id = requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    });
+    return () => cancelAnimationFrame(id);
   }, [currentIndex, phase]);
 
   // ── Exit confirmation ──
