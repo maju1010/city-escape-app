@@ -9,11 +9,80 @@ import NavigationView from "./NavigationView";
 import QRShare from "./QRShare";
 import GoldRain from "./GoldRain";
 import TaskTransition from "./TaskTransition";
-import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/sounds";
+import { playHint, playDing, playFanfare } from "@/lib/sounds";
 import { useI18n } from "@/lib/useI18n";
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
 import { getLocationImage } from "@/lib/locationImages";
+
+// ── Haptic wrapper – safe on iOS (no vibrate API) and Android ──
+function haptic(pattern: number | number[]) {
+  try {
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  } catch { /* ignore – iOS throws */ }
+}
+
+// ── Web Audio helpers – singleton context, lazy-initialised after user gesture ──
+let audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!audioCtx) {
+    audioCtx = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    )();
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+
+function playTick() {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 800;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.05);
+  } catch { /* ignore */ }
+}
+
+function playSuccess() {
+  try {
+    const ctx = getAudioContext();
+    [523, 659, 784].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.15);
+      osc.start(ctx.currentTime + i * 0.1);
+      osc.stop(ctx.currentTime + i * 0.1 + 0.15);
+    });
+  } catch { /* ignore */ }
+}
+
+function playError() {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sawtooth";
+    osc.frequency.value = 150;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch { /* ignore */ }
+}
 
 // ── Error boundary – captures runtime crashes and shows them on screen ──
 class GameErrorBoundary extends Component<
@@ -169,21 +238,8 @@ function DrumWheel({ digit, onChange }: { digit: number; onChange: (d: number) =
       prevDigit.current = d;
       if (d !== digit) {
         onChange(d);
-        // Tick sound via Web Audio API
-        try {
-          const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.frequency.setValueAtTime(900, ctx.currentTime);
-          gain.gain.setValueAtTime(0.08, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-          osc.start(ctx.currentTime);
-          osc.stop(ctx.currentTime + 0.05);
-        } catch { /* ignore – AudioContext may be unavailable */ }
-        // Haptic
-        if (typeof navigator.vibrate === "function") navigator.vibrate(10);
+        playTick();
+        haptic(10);
       }
       // Silently re-center if near edges
       if (idx < 5 || idx > 10 * DRUM_REPS - 5) {
@@ -734,8 +790,8 @@ function GameClientInner({
 
     if (isMatch) {
       setAnswerState("correct");
-      playCorrect();
-      if (typeof navigator.vibrate === "function") navigator.vibrate([50, 30, 50]);
+      playSuccess();
+      haptic([50, 30, 50]);
       // Reward banner
       if (task.narrative_reward) {
         if (rewardTimerRef.current) clearTimeout(rewardTimerRef.current);
@@ -756,8 +812,8 @@ function GameClientInner({
       }
     } else {
       setAnswerState("wrong");
-      playWrong();
-      if (typeof navigator.vibrate === "function") navigator.vibrate(200);
+      playError();
+      haptic(200);
       // Shake animation
       if (!shouldReduce) {
         const el = answerAreaRef.current;

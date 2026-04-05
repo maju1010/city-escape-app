@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useI18n } from "@/lib/useI18n";
+
+function haptic(pattern: number | number[]) {
+  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch { /* iOS */ }
+}
 import dynamic from "next/dynamic";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Task } from "./GameClient";
@@ -154,9 +158,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
 
   // Haptic feedback when player arrives
   useEffect(() => {
-    if (isNearby && typeof navigator.vibrate === "function") {
-      navigator.vibrate([100, 50, 100, 50, 100]);
-    }
+    if (isNearby) haptic([100, 50, 100, 50, 100]);
   }, [isNearby]);
 
   const [imgError, setImgError] = useState(false);
