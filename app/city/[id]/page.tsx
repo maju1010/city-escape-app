@@ -72,7 +72,7 @@ export default async function CityPage({
       <div className="w-full max-w-md mb-10">
         <h1 className="text-3xl font-bold text-amber-400 mb-3">{(city as City).name}</h1>
         {(city as City).description && (
-          <p className="text-[#a09880] text-sm leading-relaxed">{(city as City).description}</p>
+          <p className="text-[#b8a99a] text-sm leading-relaxed">{(city as City).description}</p>
         )}
         <div className="mt-5 w-12 h-px bg-amber-800" />
       </div>
@@ -80,13 +80,13 @@ export default async function CityPage({
       {/* Scenarios */}
       <div className="w-full max-w-md">
         {scenarios && scenarios.length > 1 && (
-          <h2 className="text-xs tracking-widest uppercase text-[#6b6380] mb-4">
+          <h2 className="text-xs tracking-widest uppercase text-[#7a6e65] mb-4">
             Tilgængelige scenarier
           </h2>
         )}
 
         {scenarios && scenarios.length === 0 && (
-          <p className="text-[#a09880] text-sm">Ingen scenarier fundet for denne by.</p>
+          <p className="text-[#b8a99a] text-sm">Ingen scenarier fundet for denne by.</p>
         )}
 
         <div className="flex flex-col gap-5">
@@ -103,7 +103,7 @@ export default async function CityPage({
             return (
             <div
               key={scenario.id}
-              className="bg-[#1a1828] border border-amber-900/40 rounded-xl p-6"
+              className="bg-[#242232] border border-amber-900/40 rounded-xl p-6"
             >
               <div className="flex items-start justify-between gap-3 mb-3">
                 <h3 className="text-lg font-semibold text-amber-300 leading-tight">
@@ -117,7 +117,7 @@ export default async function CityPage({
               </div>
 
               {scenario.intro && (
-                <p className="text-[#a09880] text-base leading-relaxed mb-5">
+                <p className="text-[#b8a99a] text-base leading-relaxed mb-5">
                   {scenario.intro}
                 </p>
               )}

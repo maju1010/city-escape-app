@@ -132,7 +132,7 @@ function TaskImage({ locationName, imageUrl }: { locationName: string; imageUrl:
   if (!locationName && !imageUrl) return null;
   const src = getLocationImage(locationName, imageUrl);
   return (
-    <div className="relative h-36 w-full overflow-hidden bg-[#1a1828]">
+    <div className="relative h-36 w-full overflow-hidden bg-[#242232]">
       {!error && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -147,7 +147,7 @@ function TaskImage({ locationName, imageUrl }: { locationName: string; imageUrl:
           onError={() => setError(true)}
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0f0e17]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#1a1820]" />
     </div>
   );
 }
@@ -278,8 +278,8 @@ function DrumWheel({ digit, onChange }: { digit: number; onChange: (d: number) =
           background: "rgba(146,64,14,0.08)",
         }}
       />
-      <div className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: DRUM_H, background: "linear-gradient(to bottom, #0d0c17 30%, transparent)" }} />
-      <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: DRUM_H, background: "linear-gradient(to top, #0d0c17 30%, transparent)" }} />
+      <div className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: DRUM_H, background: "linear-gradient(to bottom, #1a1820 30%, transparent)" }} />
+      <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: DRUM_H, background: "linear-gradient(to top, #1a1820 30%, transparent)" }} />
     </div>
   );
 }
@@ -295,7 +295,7 @@ function DrumLock({ value, numDigits, onChange }: { value: string; numDigits: nu
 
   return (
     <div className="flex justify-center my-5">
-      <div className="relative bg-[#0d0c17] border-2 border-amber-900/60 rounded-2xl px-4 py-3 flex gap-3 items-center shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
+      <div className="relative bg-[#1a1820] border-2 border-amber-900/60 rounded-2xl px-4 py-3 flex gap-3 items-center shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
         <div className="absolute inset-0 rounded-2xl bg-amber-900/5 pointer-events-none" />
         {digits.map((d, i) => (
           <DrumWheel key={i} digit={d} onChange={(v) => setDigit(i, v)} />
@@ -324,7 +324,7 @@ function NumberPicker({
 
   return (
     <div className="mb-6">
-      <p className="text-xs text-[#6b6380] tracking-widest uppercase text-center mb-4">
+      <p className="text-xs text-[#7a6e65] tracking-widest uppercase text-center mb-4">
         Vælg et tal
       </p>
       <div className="flex flex-wrap justify-center gap-3 mb-5">
@@ -336,8 +336,8 @@ function NumberPicker({
               onClick={() => pick(n)}
               className={`w-16 h-16 rounded-2xl text-2xl font-bold border-2 transition-all duration-150 select-none active:scale-90 ${
                 isSelected
-                  ? "bg-amber-600 border-amber-400 text-[#0f0e17] shadow-[0_0_18px_rgba(245,158,11,0.45)]"
-                  : "bg-[#1a1828] border-amber-900/40 text-amber-300 hover:border-amber-500 hover:bg-amber-900/20"
+                  ? "bg-amber-600 border-amber-400 text-[#1a1820] shadow-[0_0_18px_rgba(245,158,11,0.45)]"
+                  : "bg-[#242232] border-amber-900/40 text-amber-300 hover:border-amber-500 hover:bg-amber-900/20"
               }`}
             >
               {n}
@@ -351,7 +351,7 @@ function NumberPicker({
       <button
         onClick={() => selected !== null && onCheck(String(selected))}
         disabled={selected === null}
-        className="w-full py-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base transition-all disabled:opacity-40"
+        className="w-full py-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#1a1820] font-semibold text-base transition-all disabled:opacity-40"
       >
         Tjek svar
       </button>
@@ -425,9 +425,9 @@ function WordScramble({
 
   return (
     <div className="mb-6">
-      <div className="bg-[#14131f] border border-amber-900/30 rounded-xl px-4 py-3 mb-5 text-center">
+      <div className="bg-[#221f31] border border-amber-900/30 rounded-xl px-4 py-3 mb-5 text-center">
         <p className="text-amber-400 font-semibold text-base">Sæt bogstaverne i den rigtige rækkefølge</p>
-        <p className="text-[#6b6380] text-xs mt-1">Svaret er {answer.replace(/\s/g, "").length} bogstaver</p>
+        <p className="text-[#7a6e65] text-xs mt-1">Svaret er {answer.replace(/\s/g, "").length} bogstaver</p>
       </div>
       <div className="flex flex-wrap justify-center gap-2 mb-5">
         {letters.map((letter, i) => {
@@ -439,8 +439,8 @@ function WordScramble({
               disabled={used}
               className={`w-13 h-13 min-w-[3rem] min-h-[3rem] text-xl font-bold rounded-xl border-2 transition-all select-none ${
                 used
-                  ? "border-transparent text-transparent bg-[#14131f] cursor-default"
-                  : "border-amber-700 text-amber-300 bg-[#1a1828] hover:border-amber-400 hover:bg-amber-900/20 active:scale-90"
+                  ? "border-transparent text-transparent bg-[#221f31] cursor-default"
+                  : "border-amber-700 text-amber-300 bg-[#242232] hover:border-amber-400 hover:bg-amber-900/20 active:scale-90"
               }`}
             >
               {letter}
@@ -452,12 +452,12 @@ function WordScramble({
         {built.length === 0 ? (
           <div className="flex gap-2">
             {Array.from({ length: answer.replace(/\s/g, "").length }).map((_, i) => (
-              <div key={i} className="w-12 h-12 rounded-xl border-2 border-dashed border-[#2a2840]" />
+              <div key={i} className="w-12 h-12 rounded-xl border-2 border-dashed border-[#2e2a3d]" />
             ))}
           </div>
         ) : (
           built.map((letter, i) => (
-            <div key={i} className="w-12 h-12 flex items-center justify-center bg-[#14131f] border-2 border-amber-600 rounded-xl text-amber-300 text-xl font-bold">
+            <div key={i} className="w-12 h-12 flex items-center justify-center bg-[#221f31] border-2 border-amber-600 rounded-xl text-amber-300 text-xl font-bold">
               {letter}
             </div>
           ))
@@ -477,7 +477,7 @@ function WordScramble({
         <button
           onClick={check}
           disabled={selected.length !== answer.replace(/\s/g, "").length}
-          className="flex-1 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base transition-all disabled:opacity-40"
+          className="flex-1 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#1a1820] font-semibold text-base transition-all disabled:opacity-40"
         >
           Tjek svar
         </button>
@@ -485,7 +485,7 @@ function WordScramble({
       {selected.length > 0 && (
         <button
           onClick={clearAll}
-          className="w-full text-[#4a4560] hover:text-amber-800 text-sm underline underline-offset-2 transition-colors py-1"
+          className="w-full text-[#7a6e65] hover:text-amber-800 text-sm underline underline-offset-2 transition-colors py-1"
         >
           Ryd alle
         </button>
@@ -785,18 +785,18 @@ function GameClientInner({
 
   // ── Shared header JSX ──
   const headerJSX = (
-    <header className="sticky top-0 z-10 bg-[#0f0e17]/95 backdrop-blur border-b border-amber-900/30 px-4 pt-4 pb-3">
+    <header className="sticky top-0 z-10 bg-[#1a1820]/95 backdrop-blur border-b border-amber-900/30 px-4 pt-4 pb-3">
       <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between mb-2">
           <span className="text-amber-300 font-semibold text-base truncate max-w-[55%]">{teamName}</span>
           <div className="flex items-center gap-2">
-            <div className="bg-[#1a1828] border border-amber-900/40 rounded-lg px-3 py-1.5 text-amber-400 font-mono text-base tabular-nums">
+            <div className="bg-[#242232] border border-amber-900/40 rounded-lg px-3 py-1.5 text-amber-400 font-mono text-base tabular-nums">
               {formatTime(elapsed)}
             </div>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("openBurgerMenu"))}
               aria-label="Menu"
-              className="w-9 h-9 flex flex-col items-center justify-center gap-[4px] rounded-lg bg-[#1a1828] border border-amber-900/40 hover:border-amber-600 transition-colors shrink-0"
+              className="w-9 h-9 flex flex-col items-center justify-center gap-[4px] rounded-lg bg-[#242232] border border-amber-900/40 hover:border-amber-600 transition-colors shrink-0"
             >
               <span className="block w-4 h-[2px] bg-amber-500 rounded-full" />
               <span className="block w-4 h-[2px] bg-amber-500 rounded-full" />
@@ -805,10 +805,10 @@ function GameClientInner({
           </div>
         </div>
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-[#6b6380] tracking-wider uppercase truncate mr-3">{scenario.title}</span>
+          <span className="text-xs text-[#7a6e65] tracking-wider uppercase truncate mr-3">{scenario.title}</span>
           <span className="text-xs text-amber-700 shrink-0">{currentIndex + 1} / {tasks.length}</span>
         </div>
-        <div className="w-full h-2 bg-[#2a2840] rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-[#2e2a3d] rounded-full overflow-hidden">
           <div
             className="h-2 bg-gradient-to-r from-amber-700 to-amber-400 rounded-full transition-all duration-500"
             style={{ width: `${((currentIndex + 1) / tasks.length) * 100}%` }}
@@ -859,29 +859,29 @@ function GameClientInner({
           Mysteriet er løst!
         </motion.h1>
         <p className="text-amber-600 text-sm tracking-widest uppercase mb-1">{scenario.title}</p>
-        <p className="text-[#a09880] text-base mb-8">{teamName}</p>
+        <p className="text-[#b8a99a] text-base mb-8">{teamName}</p>
 
         <div className="flex gap-4 mb-8">
-          <div className="bg-[#1a1828] border border-amber-900/40 rounded-xl px-6 py-4 text-center">
+          <div className="bg-[#242232] border border-amber-900/40 rounded-xl px-6 py-4 text-center">
             <div className="text-2xl font-bold text-amber-300">
               {minutes > 0 ? `${minutes}m ` : ""}{seconds}s
             </div>
-            <div className="text-[#6b6380] text-xs mt-1 tracking-wide uppercase">Tid brugt</div>
+            <div className="text-[#7a6e65] text-xs mt-1 tracking-wide uppercase">Tid brugt</div>
           </div>
-          <div className="bg-[#1a1828] border border-amber-900/40 rounded-xl px-6 py-4 text-center">
+          <div className="bg-[#242232] border border-amber-900/40 rounded-xl px-6 py-4 text-center">
             <div className="text-2xl font-bold text-amber-300">{totalHints}</div>
-            <div className="text-[#6b6380] text-xs mt-1 tracking-wide uppercase">Hints brugt</div>
+            <div className="text-[#7a6e65] text-xs mt-1 tracking-wide uppercase">Hints brugt</div>
           </div>
         </div>
 
-        <p className="text-[#a09880] text-base leading-relaxed max-w-sm mb-8">
+        <p className="text-[#b8a99a] text-base leading-relaxed max-w-sm mb-8">
           Mysteriet er opklaret. Byen har ingen hemmeligheder for jer.
         </p>
 
         <div className="w-full max-w-xs flex flex-col gap-3">
           <button
             onClick={handleShare}
-            className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
+            className="w-full bg-amber-600 hover:bg-amber-500 text-[#1a1820] font-semibold py-4 rounded-xl transition-colors text-base"
           >
             {copied ? "✓ Kopieret!" : "Del dit resultat"}
           </button>
@@ -918,11 +918,11 @@ function GameClientInner({
               >
                 <p className="text-2xl mb-2">🙏</p>
                 <p className="text-amber-400 font-semibold text-base mb-1">Tak for din feedback!</p>
-                <p className="text-[#6b6380] text-sm">Det hjælper os med at gøre spillet bedre.</p>
+                <p className="text-[#7a6e65] text-sm">Det hjælper os med at gøre spillet bedre.</p>
               </motion.div>
             ) : (
               <>
-                <p className="text-[#a09880] text-sm font-semibold mb-3 text-center">Hvordan var oplevelsen?</p>
+                <p className="text-[#b8a99a] text-sm font-semibold mb-3 text-center">Hvordan var oplevelsen?</p>
                 <div className="flex justify-center gap-2 mb-4" onMouseLeave={() => setReviewHover(0)}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -931,7 +931,7 @@ function GameClientInner({
                       onMouseEnter={() => setReviewHover(star)}
                       className="text-3xl transition-transform active:scale-90"
                       style={{
-                        color: star <= (reviewHover || reviewRating) ? "#f59e0b" : "#2a2840",
+                        color: star <= (reviewHover || reviewRating) ? "#f59e0b" : "#2e2a3d",
                         filter: star <= (reviewHover || reviewRating) ? "drop-shadow(0 0 6px rgba(245,158,11,0.5))" : "none",
                         transform: star <= (reviewHover || reviewRating) ? "scale(1.1)" : "scale(1)",
                         transition: "all 0.15s ease",
@@ -948,7 +948,7 @@ function GameClientInner({
                   placeholder="Fortæl os hvad du synes (valgfrit)"
                   rows={3}
                   maxLength={500}
-                  className="w-full bg-[#1a1828] border border-amber-900/30 focus:border-amber-700 rounded-xl px-4 py-3 text-[#e8e0d0] text-sm placeholder-[#4a4560] outline-none transition-colors resize-none mb-3"
+                  className="w-full bg-[#242232] border border-amber-900/30 focus:border-amber-700 rounded-xl px-4 py-3 text-[#e8e0d0] text-sm placeholder-[#7a6e65] outline-none transition-colors resize-none mb-3"
                 />
                 {reviewError && (
                   <p className="text-red-400 text-xs mb-2">{reviewError}</p>
@@ -956,7 +956,7 @@ function GameClientInner({
                 <button
                   onClick={handleSubmitReview}
                   disabled={reviewRating === 0 || reviewSending}
-                  className="w-full py-3 rounded-xl bg-[#1a1828] border border-amber-900/40 hover:border-amber-700 text-amber-700 hover:text-amber-500 font-semibold text-base transition-colors disabled:opacity-40"
+                  className="w-full py-3 rounded-xl bg-[#242232] border border-amber-900/40 hover:border-amber-700 text-amber-700 hover:text-amber-500 font-semibold text-base transition-colors disabled:opacity-40"
                 >
                   {reviewSending ? "Sender…" : "Send anmeldelse"}
                 </button>
@@ -966,7 +966,7 @@ function GameClientInner({
 
           <Link
             href="/"
-            className="text-[#4a4560] hover:text-amber-800 text-sm underline underline-offset-2 transition-colors py-1"
+            className="text-[#7a6e65] hover:text-amber-800 text-sm underline underline-offset-2 transition-colors py-1"
           >
             Tilbage til forsiden
           </Link>
@@ -1013,7 +1013,7 @@ function GameClientInner({
             <h2 className="text-xl font-bold text-amber-300 mb-4">{task.title}</h2>
 
             {task.narrative_intro && (
-              <div className="bg-[#1a1828] border-l-4 border-amber-700 rounded-r-xl px-5 py-4 mb-5 italic text-[#c8b89a] text-[17px] leading-relaxed">
+              <div className="bg-[#2a2218] border-l-4 border-[#8b6914] rounded-r-xl px-5 py-4 mb-5 italic text-[#b8a99a] text-[17px] leading-relaxed">
                 {task.narrative_intro}
               </div>
             )}
@@ -1021,7 +1021,7 @@ function GameClientInner({
             {task.location_name && (
               <div className="flex items-center gap-2 mb-5">
                 <span className="text-base">📍</span>
-                <span className="text-[#a09880] text-base">{task.location_name}</span>
+                <span className="text-[#b8a99a] text-base">{task.location_name}</span>
                 {mapsUrl && (
                   <a
                     href={mapsUrl}
@@ -1035,7 +1035,7 @@ function GameClientInner({
               </div>
             )}
 
-            <div className="bg-[#14131f] border border-amber-900/30 rounded-xl p-5 mb-4">
+            <div className="bg-[#221f31] border border-amber-900/30 rounded-xl p-5 mb-4">
               <p className="text-[#e8e0d0] text-[18px] leading-relaxed">{task.question}</p>
             </div>
 
@@ -1068,8 +1068,8 @@ function GameClientInner({
                         onClick={() => handleCheckAnswer(choice)}
                         className={`w-full text-left px-5 py-4 rounded-xl border text-base transition-all ${
                           answerState === "wrong"
-                            ? "border-red-800/50 bg-[#1a1828] text-[#a09880]"
-                            : "border-amber-900/40 bg-[#1a1828] hover:border-amber-600 hover:bg-[#1e1c2e] text-[#e8e0d0]"
+                            ? "border-red-800/50 bg-[#242232] text-[#b8a99a]"
+                            : "border-amber-900/40 bg-[#242232] hover:border-amber-600 hover:bg-[#2e2a3d] text-[#e8e0d0]"
                         }`}
                       >
                         <span className="text-amber-700 mr-3 font-semibold">
@@ -1085,7 +1085,7 @@ function GameClientInner({
                 </div>
               ) : task.answer_type === "combination_lock" ? (
                 <div className="mb-6">
-                  <p className="text-center text-xs text-[#6b6380] tracking-widest uppercase mb-1">
+                  <p className="text-center text-xs text-[#7a6e65] tracking-widest uppercase mb-1">
                     Træk op/ned for at dreje
                   </p>
                   <DrumLock
@@ -1095,7 +1095,7 @@ function GameClientInner({
                   />
                   <button
                     onClick={() => handleCheckAnswer(lockValue)}
-                    className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
+                    className="w-full bg-amber-600 hover:bg-amber-500 text-[#1a1820] font-semibold py-4 rounded-xl transition-colors text-base"
                   >
                     {t("unlock")}
                   </button>
@@ -1161,7 +1161,7 @@ function GameClientInner({
                     }}
                     onKeyDown={(e) => e.key === "Enter" && handleCheckAnswer()}
                     placeholder="Skriv dit svar her..."
-                    className={`w-full bg-[#1a1828] border rounded-xl px-4 py-4 text-[#e8e0d0] text-[17px] placeholder-[#4a4560] transition-colors input-glow ${
+                    className={`w-full bg-[#242232] border rounded-xl px-4 py-4 text-[#e8e0d0] text-[17px] placeholder-[#7a6e65] transition-colors input-glow ${
                       answerState === "wrong"
                         ? "border-red-700 focus:border-red-500"
                         : "border-amber-900/40 focus:border-amber-600"
@@ -1173,7 +1173,7 @@ function GameClientInner({
                   <button
                     onClick={() => handleCheckAnswer()}
                     disabled={!textAnswer.trim()}
-                    className="w-full mt-3 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/40 disabled:text-amber-800 text-[#0f0e17] font-semibold py-4 rounded-xl text-base btn-glow disabled:shadow-none"
+                    className="w-full mt-3 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/40 disabled:text-amber-800 text-[#1a1820] font-semibold py-4 rounded-xl text-base btn-glow disabled:shadow-none"
                   >
                     {t("checkAnswer")}
                   </button>
@@ -1193,7 +1193,7 @@ function GameClientInner({
                       transition={{ duration: 0.35, ease: "easeOut" }}
                       className="mb-2 overflow-hidden"
                     >
-                      <div className="bg-[#1a1828] border border-amber-900/30 rounded-lg px-4 py-3 text-[#a09880] text-sm hint-glow">
+                      <div className="bg-[#242232] border border-amber-900/30 rounded-lg px-4 py-3 text-[#b8a99a] text-sm hint-glow">
                         <span className="text-amber-700 font-semibold">Hint {i + 1}: </span>
                         {hint}
                       </div>
@@ -1215,7 +1215,7 @@ function GameClientInner({
             {taskSolved && (
               <button
                 onClick={handleNextTask}
-                className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl text-base btn-glow"
+                className="w-full bg-amber-600 hover:bg-amber-500 text-[#1a1820] font-semibold py-4 rounded-xl text-base btn-glow"
               >
                 {currentIndex + 1 >= tasks.length ? t("seeResult") : t("nextTask")}
               </button>
@@ -1229,13 +1229,13 @@ function GameClientInner({
       {/* Exit confirmation modal */}
       {showExitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm">
-          <div className="bg-[#14131f] border border-amber-900/40 rounded-2xl p-6 w-full max-w-sm shadow-xl">
+          <div className="bg-[#221f31] border border-amber-900/40 rounded-2xl p-6 w-full max-w-sm shadow-xl">
             <h2 className="text-amber-300 font-bold text-lg mb-2">{t("exitTitle")}</h2>
-            <p className="text-[#a09880] text-sm leading-relaxed mb-6">{t("exitBody")}</p>
+            <p className="text-[#b8a99a] text-sm leading-relaxed mb-6">{t("exitBody")}</p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => setShowExitModal(false)}
-                className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-3 rounded-xl text-base btn-glow"
+                className="w-full bg-amber-600 hover:bg-amber-500 text-[#1a1820] font-semibold py-3 rounded-xl text-base btn-glow"
               >
                 {t("continueGame")}
               </button>

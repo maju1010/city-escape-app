@@ -21,11 +21,11 @@ export default function StartGameButton({ scenarioId }: { scenarioId: string }) 
         onKeyDown={(e) => e.key === "Enter" && start()}
         placeholder="fx Familie Hansen"
         maxLength={30}
-        className="w-full bg-[#14131f] border border-amber-900/40 focus:border-amber-600 rounded-xl px-4 py-3 text-[#e8e0d0] text-base placeholder-[#4a4560] outline-none transition-colors"
+        className="w-full bg-[#221f31] border border-amber-900/40 focus:border-amber-600 rounded-xl px-4 py-3 text-[#e8e0d0] text-base placeholder-[#7a6e65] outline-none transition-colors"
       />
       <button
         onClick={start}
-        className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base py-3 rounded-lg transition-colors"
+        className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-[#1a1820] font-semibold text-base py-3 rounded-lg transition-colors"
       >
         {name.trim() ? `Start som "${name.trim()}"` : "Start som Holdet"}
       </button>

@@ -117,7 +117,7 @@ export default function BurgerMenu() {
         <button
           onClick={openMenu}
           aria-label="Åbn menu"
-          className="fixed top-4 right-4 w-10 h-10 flex flex-col items-center justify-center gap-[5px] rounded-xl bg-[#1a1828] border border-amber-900/40 hover:border-amber-600 transition-colors shadow-lg"
+          className="fixed top-4 right-4 w-10 h-10 flex flex-col items-center justify-center gap-[5px] rounded-xl bg-[#242232] border border-amber-900/40 hover:border-amber-600 transition-colors shadow-lg"
           style={{ zIndex: 9997 }}
         >
           <span className="block w-5 h-[2px] bg-amber-500 rounded-full" />
@@ -137,7 +137,7 @@ export default function BurgerMenu() {
 
       {/* Slide-in panel */}
       <div
-        className="fixed top-0 right-0 h-full w-[min(340px,90vw)] bg-[#0d0c17] border-l border-amber-900/30 flex flex-col shadow-2xl transition-transform duration-300 ease-out"
+        className="fixed top-0 right-0 h-full w-[min(340px,90vw)] bg-[#1a1820] border-l border-amber-900/30 flex flex-col shadow-2xl transition-transform duration-300 ease-out"
         style={{ zIndex: 9999, transform: open ? "translateX(0)" : "translateX(100%)" }}
       >
         {/* Panel header */}
@@ -146,7 +146,7 @@ export default function BurgerMenu() {
           <button
             onClick={closeMenu}
             aria-label="Luk menu"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#6b6380] hover:text-amber-400 hover:bg-[#1a1828] transition-colors text-xl"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#7a6e65] hover:text-amber-400 hover:bg-[#242232] transition-colors text-xl"
           >
             ✕
           </button>
@@ -161,13 +161,13 @@ export default function BurgerMenu() {
                 <button
                   key={item.key}
                   onClick={() => setSection(item.key)}
-                  className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[#1a1828] transition-colors group"
+                  className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[#242232] transition-colors group"
                 >
                   <span className="text-2xl w-8 text-center">{item.icon}</span>
                   <span className="text-[#e8e0d0] text-base font-medium group-hover:text-amber-300 transition-colors">
                     {item.label}
                   </span>
-                  <span className="ml-auto text-[#4a4560] group-hover:text-amber-700 transition-colors">›</span>
+                  <span className="ml-auto text-[#7a6e65] group-hover:text-amber-700 transition-colors">›</span>
                 </button>
               ))}
             </nav>
@@ -186,22 +186,22 @@ export default function BurgerMenu() {
               {section === "profile" && (
                 <div className="px-5 py-2">
                   <h2 className="text-amber-400 font-bold text-lg mb-4">👤 Profil</h2>
-                  <div className="bg-[#1a1828] border border-amber-900/30 rounded-xl p-4 mb-4">
-                    <p className="text-[#6b6380] text-xs uppercase tracking-wider mb-1">Hold</p>
+                  <div className="bg-[#242232] border border-amber-900/30 rounded-xl p-4 mb-4">
+                    <p className="text-[#7a6e65] text-xs uppercase tracking-wider mb-1">Hold</p>
                     <p className="text-[#e8e0d0] text-base font-semibold">
                       {profile.teamName ?? "—"}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-[#1a1828] border border-amber-900/30 rounded-xl p-4 text-center">
+                    <div className="bg-[#242232] border border-amber-900/30 rounded-xl p-4 text-center">
                       <p className="text-2xl font-bold text-amber-300">{profile.gamesCompleted}</p>
-                      <p className="text-[#6b6380] text-xs mt-1 uppercase tracking-wide">Spil gennemført</p>
+                      <p className="text-[#7a6e65] text-xs mt-1 uppercase tracking-wide">Spil gennemført</p>
                     </div>
-                    <div className="bg-[#1a1828] border border-amber-900/30 rounded-xl p-4 text-center">
+                    <div className="bg-[#242232] border border-amber-900/30 rounded-xl p-4 text-center">
                       <p className="text-2xl font-bold text-amber-300">
                         {profile.bestTimeSeconds !== null ? formatTime(profile.bestTimeSeconds) : "—"}
                       </p>
-                      <p className="text-[#6b6380] text-xs mt-1 uppercase tracking-wide">Bedste tid</p>
+                      <p className="text-[#7a6e65] text-xs mt-1 uppercase tracking-wide">Bedste tid</p>
                     </div>
                   </div>
                 </div>
@@ -211,15 +211,15 @@ export default function BurgerMenu() {
               {section === "settings" && (
                 <div className="px-5 py-2">
                   <h2 className="text-amber-400 font-bold text-lg mb-4">⚙️ Indstillinger</h2>
-                  <div className="bg-[#1a1828] border border-amber-900/30 rounded-xl p-4 mb-3">
-                    <p className="text-[#6b6380] text-xs uppercase tracking-wider mb-3">Tema</p>
+                  <div className="bg-[#242232] border border-amber-900/30 rounded-xl p-4 mb-3">
+                    <p className="text-[#7a6e65] text-xs uppercase tracking-wider mb-3">Tema</p>
                     <div className="flex gap-3">
                       <button
                         onClick={() => { setThemeState("dark"); applyTheme("dark"); }}
                         className={`flex-1 py-3 rounded-xl border text-sm font-semibold transition-all ${
                           theme === "dark"
-                            ? "bg-amber-600 border-amber-500 text-[#0f0e17] btn-glow"
-                            : "border-amber-900/30 text-[#a09880] hover:border-amber-700"
+                            ? "bg-amber-600 border-amber-500 text-[#1a1820] btn-glow"
+                            : "border-amber-900/30 text-[#b8a99a] hover:border-amber-700"
                         }`}
                       >
                         🌙 Mørkt
@@ -228,8 +228,8 @@ export default function BurgerMenu() {
                         onClick={() => { setThemeState("light"); applyTheme("light"); }}
                         className={`flex-1 py-3 rounded-xl border text-sm font-semibold transition-all ${
                           theme === "light"
-                            ? "bg-amber-600 border-amber-500 text-[#0f0e17] btn-glow"
-                            : "border-amber-900/30 text-[#a09880] hover:border-amber-700"
+                            ? "bg-amber-600 border-amber-500 text-[#1a1820] btn-glow"
+                            : "border-amber-900/30 text-[#b8a99a] hover:border-amber-700"
                         }`}
                       >
                         ☀️ Lyst
@@ -248,8 +248,8 @@ export default function BurgerMenu() {
                       onClick={() => pickLanguage("da")}
                       className={`flex items-center gap-4 px-4 py-4 rounded-xl border text-base font-semibold transition-all ${
                         lang === "da"
-                          ? "bg-amber-600 border-amber-500 text-[#0f0e17] btn-glow"
-                          : "border-amber-900/30 text-[#e8e0d0] hover:border-amber-700 bg-[#1a1828]"
+                          ? "bg-amber-600 border-amber-500 text-[#1a1820] btn-glow"
+                          : "border-amber-900/30 text-[#e8e0d0] hover:border-amber-700 bg-[#242232]"
                       }`}
                     >
                       <span className="text-2xl">🇩🇰</span> Dansk
@@ -259,8 +259,8 @@ export default function BurgerMenu() {
                       onClick={() => pickLanguage("en")}
                       className={`flex items-center gap-4 px-4 py-4 rounded-xl border text-base font-semibold transition-all ${
                         lang === "en"
-                          ? "bg-amber-600 border-amber-500 text-[#0f0e17] btn-glow"
-                          : "border-amber-900/30 text-[#e8e0d0] hover:border-amber-700 bg-[#1a1828]"
+                          ? "bg-amber-600 border-amber-500 text-[#1a1820] btn-glow"
+                          : "border-amber-900/30 text-[#e8e0d0] hover:border-amber-700 bg-[#242232]"
                       }`}
                     >
                       <span className="text-2xl">🇬🇧</span> English
@@ -282,11 +282,11 @@ export default function BurgerMenu() {
                       style={{ maxWidth: 160, width: "100%", height: "auto" }}
                     />
                   </div>
-                  <p className="text-[#a09880] text-sm leading-relaxed mb-4">
+                  <p className="text-[#b8a99a] text-sm leading-relaxed mb-4">
                     City Escape er et outdoor escape room spil der bringer dig ud i byens gader.
                     Løs gåder, følg ledetråde og oplev byen på en helt ny måde.
                   </p>
-                  <div className="border-t border-amber-900/20 pt-4 text-[#4a4560] text-xs space-y-1">
+                  <div className="border-t border-amber-900/20 pt-4 text-[#7a6e65] text-xs space-y-1">
                     <p>Version 1.0 Beta</p>
                     <p>© 2026 City Escape</p>
                   </div>
@@ -297,12 +297,12 @@ export default function BurgerMenu() {
               {section === "contact" && (
                 <div className="px-5 py-2">
                   <h2 className="text-amber-400 font-bold text-lg mb-4">✉️ Kontakt</h2>
-                  <p className="text-[#a09880] text-sm leading-relaxed mb-5">
+                  <p className="text-[#b8a99a] text-sm leading-relaxed mb-5">
                     Har du spørgsmål, fejlmeldinger eller forslag til forbedringer? Vi hører gerne fra dig.
                   </p>
                   <a
                     href="mailto:kontakt@cityescape.dk"
-                    className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base btn-glow transition-all"
+                    className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#1a1820] font-semibold text-base btn-glow transition-all"
                   >
                     ✉️ kontakt@cityescape.dk
                   </a>
@@ -317,7 +317,7 @@ export default function BurgerMenu() {
           <Link
             href="/"
             onClick={closeMenu}
-            className="text-[#4a4560] hover:text-amber-700 text-sm underline underline-offset-2 transition-colors"
+            className="text-[#7a6e65] hover:text-amber-700 text-sm underline underline-offset-2 transition-colors"
           >
             ← Tilbage til forsiden
           </Link>

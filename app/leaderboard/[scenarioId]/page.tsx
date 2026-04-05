@@ -71,7 +71,7 @@ export default async function LeaderboardPage({
       <div className="w-full max-w-md text-center mb-10">
         <div className="text-4xl mb-3">🏆</div>
         <h1 className="text-2xl font-bold text-amber-400 mb-1">Leaderboard</h1>
-        <p className="text-[#a09880] text-sm">{scenario.title}</p>
+        <p className="text-[#b8a99a] text-sm">{scenario.title}</p>
         <div className="mt-4 w-12 h-px bg-amber-800 mx-auto" />
       </div>
 
@@ -84,19 +84,19 @@ export default async function LeaderboardPage({
           </div>
         )}
         {(!entries || entries.length === 0) ? (
-          <div className="bg-[#1a1828] border border-amber-900/30 rounded-xl p-8 text-center">
-            <p className="text-[#6b6380] text-sm">Ingen resultater endnu.</p>
-            <p className="text-[#4a4560] text-xs mt-1">Vær det første hold til at gennemføre!</p>
+          <div className="bg-[#242232] border border-amber-900/30 rounded-xl p-8 text-center">
+            <p className="text-[#7a6e65] text-sm">Ingen resultater endnu.</p>
+            <p className="text-[#7a6e65] text-xs mt-1">Vær det første hold til at gennemføre!</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
             {(entries as Entry[]).map((entry, i) => {
               const isTop3 = i < 3;
-              const rankColor = RANK_COLORS[i] ?? "text-[#6b6380]";
+              const rankColor = RANK_COLORS[i] ?? "text-[#7a6e65]";
               return (
                 <div
                   key={entry.id}
-                  className={`bg-[#1a1828] border rounded-xl px-4 py-4 flex items-center gap-4 ${
+                  className={`bg-[#242232] border rounded-xl px-4 py-4 flex items-center gap-4 ${
                     i === 0
                       ? "border-amber-600/60"
                       : i === 1
@@ -122,7 +122,7 @@ export default async function LeaderboardPage({
                     <p className={`font-semibold text-base truncate ${isTop3 ? rankColor : "text-[#e8e0d0]"}`}>
                       {entry.team_name}
                     </p>
-                    <p className="text-[#6b6380] text-xs mt-0.5">
+                    <p className="text-[#7a6e65] text-xs mt-0.5">
                       {formatDate(entry.created_at)}
                     </p>
                   </div>
@@ -132,7 +132,7 @@ export default async function LeaderboardPage({
                     <div className={`font-mono font-bold text-lg tabular-nums ${isTop3 ? rankColor : "text-amber-700"}`}>
                       ⏱ {formatTime(entry.completion_time_seconds)}
                     </div>
-                    <div className="text-[#6b6380] text-xs tabular-nums">
+                    <div className="text-[#7a6e65] text-xs tabular-nums">
                       {entry.hints_used > 0
                         ? `💡 ${entry.hints_used} hint${entry.hints_used !== 1 ? "s" : ""}`
                         : "💡 0 hints"}

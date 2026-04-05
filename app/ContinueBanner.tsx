@@ -40,17 +40,17 @@ export default function ContinueBanner() {
   }
 
   return (
-    <div className="w-full max-w-md mb-6 bg-[#1a1828] border border-amber-700/50 rounded-xl px-5 py-5">
+    <div className="w-full max-w-md mb-6 bg-[#242232] border border-amber-700/50 rounded-xl px-5 py-5">
       <p className="text-xs text-amber-700 tracking-widest uppercase mb-1">Igangværende spil</p>
       <p className="text-[#e8e0d0] text-base font-semibold leading-snug">
         {game.teamName} er nået til opgave {game.currentIndex + 1} af {game.totalTasks}
       </p>
-      <p className="text-[#a09880] text-sm mt-0.5 mb-5">{game.scenarioTitle}</p>
+      <p className="text-[#b8a99a] text-sm mt-0.5 mb-5">{game.scenarioTitle}</p>
 
       {/* Primary: Fortsæt */}
       <Link
         href={`/play/${game.scenarioId}`}
-        className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-3 rounded-lg transition-colors text-base mb-3"
+        className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-[#1a1820] font-semibold py-3 rounded-lg transition-colors text-base mb-3"
       >
         Fortsæt → (opgave {game.currentIndex + 1})
       </Link>

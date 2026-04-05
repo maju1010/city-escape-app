@@ -43,7 +43,7 @@ export default function CityCard({ city }: { city: City }) {
         transition={{ duration: 0.2 }}
       >
         {/* Background image with parallax */}
-        <div className="relative h-44 w-full bg-[#1a1828] overflow-hidden">
+        <div className="relative h-44 w-full bg-[#242232] overflow-hidden">
           {!imgError && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -58,7 +58,7 @@ export default function CityCard({ city }: { city: City }) {
             />
           )}
           {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0e17] via-[#0f0e17]/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1a1820] via-[#1a1820]/50 to-transparent" />
 
           {/* "Tilgængeligt nu" badge */}
           <div className="absolute top-3 right-3">
@@ -69,13 +69,13 @@ export default function CityCard({ city }: { city: City }) {
         </div>
 
         {/* Text content */}
-        <div className="relative bg-[#1a1828] px-5 pb-5 pt-4 group-hover:bg-[#1e1c2e] transition-colors">
+        <div className="relative bg-[#242232] px-5 pb-5 pt-4 group-hover:bg-[#2e2a3d] transition-colors">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-xl font-semibold text-amber-300">{city.name}</h2>
             <span className="text-amber-700 group-hover:text-amber-400 transition-colors text-xl">→</span>
           </div>
           {city.description && (
-            <p className="text-[#a09880] text-sm leading-relaxed">{city.description}</p>
+            <p className="text-[#b8a99a] text-sm leading-relaxed">{city.description}</p>
           )}
         </div>
       </motion.div>

@@ -28,7 +28,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[#0f0e17] text-[#e8e0d0]">
+      <body className="min-h-full flex flex-col bg-[#1a1820] text-[#e8e0d0]">
         <BurgerMenu />
         {children}
       </body>
