@@ -5,36 +5,37 @@
 
 let ctx: AudioContext | null = null;
 
+// Only returns an existing context — never creates one.
+// Sound functions call this; they silently no-op until unlockAudio() has run.
 function getCtx(): AudioContext | null {
-  if (typeof window === "undefined") return null;
+  return ctx && ctx.state === "running" ? ctx : null;
+}
+
+/**
+ * MUST be called synchronously inside a touchstart or click handler.
+ *
+ * iOS Safari (and Chrome on iOS, which uses the same WebKit engine) requires
+ * that AudioContext is BOTH created AND resumed within the same user gesture.
+ * Creating it anywhere else — even calling getCtx() from an auto-starting
+ * animation — puts the context in a suspended state that iOS will never allow
+ * to resume. So this is the only place that calls `new AudioContext()`.
+ */
+export function unlockAudio() {
+  if (typeof window === "undefined") return;
   try {
     if (!ctx) {
       ctx = new (window.AudioContext ||
         (window as Window & { webkitAudioContext?: typeof AudioContext })
           .webkitAudioContext!)();
     }
-    return ctx;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Call this synchronously inside a touchstart or click handler.
- * Creates the AudioContext if needed, resumes it, and plays a silent
- * 1-sample buffer — the combination iOS needs to mark audio as "allowed".
- */
-export function unlockAudio() {
-  try {
-    const c = getCtx();
-    if (!c || c.state === "running") return;
-    // resume() is async — also play a silent buffer synchronously so iOS
-    // registers the gesture and marks audio as permitted
-    c.resume();
-    const buf = c.createBuffer(1, 1, c.sampleRate);
-    const src = c.createBufferSource();
+    if (ctx.state === "running") return;
+    ctx.resume();
+    // Play a silent 1-sample buffer synchronously so iOS registers
+    // the gesture and marks the context as permitted.
+    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const src = ctx.createBufferSource();
     src.buffer = buf;
-    src.connect(c.destination);
+    src.connect(ctx.destination);
     src.start(0);
   } catch { /* ignore */ }
 }
