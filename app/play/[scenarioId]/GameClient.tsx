@@ -6,7 +6,7 @@ import Link from "next/link";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import NavigationView from "./NavigationView";
-import { playHint, playDing, playFanfare, playTypeTick } from "@/lib/sounds";
+import { unlockAudio, playTick, playSuccess, playError, playHint, playDing, playFanfare, playTypeTick } from "@/lib/sounds";
 import { useI18n } from "@/lib/useI18n";
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
@@ -18,98 +18,6 @@ function haptic(pattern: number | number[]) {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate(pattern);
     }
-  } catch { /* ignore */ }
-}
-
-// ── Web Audio – singleton context, unlocked on first user gesture ──
-//
-// On iOS Safari the AudioContext starts in "suspended" state and can ONLY
-// be resumed synchronously inside a touchstart/click handler. Scroll events
-// and setTimeout callbacks do not qualify. We therefore unlock the context
-// on the very first touchstart/click that reaches the document, so all
-// subsequent programmatic sounds (tick, success, error) work immediately.
-let audioCtx: AudioContext | null = null;
-
-function getAudioContext(): AudioContext | null {
-  try {
-    if (!audioCtx) {
-      audioCtx = new (
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-      )();
-    }
-    return audioCtx;
-  } catch {
-    return null;
-  }
-}
-
-// Must be called during a real user gesture (touchstart / click).
-// Creates the context if needed, resumes it, and plays a silent buffer –
-// that combination reliably unlocks audio on both iOS and Android.
-function unlockAudioContext() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    if (ctx.state === "suspended") ctx.resume();
-    // Silent 1-sample buffer tricks iOS into marking the context as "allowed"
-    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.start(0);
-  } catch { /* ignore */ }
-}
-
-function playTick() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx || ctx.state !== "running") return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 1200;
-    osc.type = "sine";
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.04);
-  } catch { /* ignore */ }
-}
-
-function playSuccess() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx || ctx.state !== "running") return;
-    [523, 659, 784].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.15);
-      osc.start(ctx.currentTime + i * 0.1);
-      osc.stop(ctx.currentTime + i * 0.1 + 0.15);
-    });
-  } catch { /* ignore */ }
-}
-
-function playError() {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx || ctx.state !== "running") return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = "sawtooth";
-    osc.frequency.value = 150;
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.3);
   } catch { /* ignore */ }
 }
 
@@ -317,7 +225,7 @@ function DrumWheel({ digit, onChange }: { digit: number; onChange: (d: number) =
       <div
         ref={scrollRef}
         className="drum-scroll"
-        onTouchStart={unlockAudioContext}
+        onTouchStart={unlockAudio}
         onScroll={handleScroll}
         style={{
           width: "100%",
@@ -635,7 +543,7 @@ function GameClientInner({
   // ── Unlock AudioContext on first user gesture ──
   // iOS requires this to happen synchronously inside touchstart/click.
   useEffect(() => {
-    const unlock = () => { unlockAudioContext(); };
+    const unlock = () => { unlockAudio(); };
     document.addEventListener("touchstart", unlock, { once: true, passive: true });
     document.addEventListener("click",      unlock, { once: true });
     return () => {
