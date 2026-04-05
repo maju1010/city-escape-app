@@ -667,9 +667,11 @@ function GameClientInner({
     const given = (givenOverride ?? textAnswer).trim();
     const correct = task.answer.trim();
 
-    // Combination lock: compare as integers so "93" matches "0093"
+    console.log("Sammenligner:", JSON.stringify(given), "med:", JSON.stringify(correct), "type:", typeof given, typeof correct);
+
+    // Combination lock and number picker: compare as integers so "4" matches " 4" etc.
     const isMatch =
-      task.answer_type === "combination_lock"
+      task.answer_type === "combination_lock" || task.answer_type === "number_picker"
         ? parseInt(given, 10) === parseInt(correct, 10)
         : given.toLowerCase() === correct.toLowerCase();
 
