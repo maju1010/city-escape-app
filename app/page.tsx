@@ -12,7 +12,11 @@ const COMING_SOON = [
     name: "København",
     description: "Oplev den danske hovedstad – kanaler, slotte og hemmeligheder",
     image_url:
-      "https://images.unsplash.com/photo-1552560902-59d3e8b6e8f1?w=800&q=80",
+      "https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=800&q=80",
+    fallback_urls: [
+      "https://images.unsplash.com/photo-1548625149-720fb7acd4fc?w=800&q=80",
+      "https://images.unsplash.com/photo-1529258283598-8d6fe60b27f4?w=800&q=80",
+    ],
   },
   {
     id: "coming-london",

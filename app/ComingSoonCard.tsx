@@ -7,22 +7,37 @@ type City = {
   name: string;
   description: string;
   image_url: string;
+  fallback_urls?: string[];
 };
 
 export default function ComingSoonCard({ city }: { city: City }) {
-  const [imgError, setImgError] = useState(false);
+  const allUrls = [city.image_url, ...(city.fallback_urls ?? [])];
+  const [urlIndex, setUrlIndex] = useState(0);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  function handleError() {
+    const next = urlIndex + 1;
+    if (next < allUrls.length) {
+      setUrlIndex(next);
+    } else {
+      setImgFailed(true);
+    }
+  }
+
+  const currentUrl = allUrls[urlIndex];
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-amber-900/20 cursor-default">
       {/* Background image */}
       <div className="relative h-44 w-full bg-[#1a1828] overflow-hidden">
-        {!imgError && (
+        {!imgFailed && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={city.image_url}
+            key={currentUrl}
+            src={currentUrl}
             alt={city.name}
             className="absolute inset-0 w-full h-full object-cover"
-            onError={() => setImgError(true)}
+            onError={handleError}
           />
         )}
         {/* Dark overlay 60% */}
