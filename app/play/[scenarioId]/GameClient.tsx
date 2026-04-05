@@ -12,45 +12,76 @@ import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
 import { getLocationImage } from "@/lib/locationImages";
 
-// ── Haptic wrapper – safe on iOS ──
+// ── Haptic wrapper – Android only (iOS has no vibrate API) ──
 function haptic(pattern: number | number[]) {
   try {
-    if (navigator.vibrate) navigator.vibrate(pattern);
-  } catch { /* ignore – iOS throws */ }
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(pattern);
+    }
+  } catch { /* ignore */ }
 }
 
-// ── Web Audio helpers – singleton context ──
+// ── Web Audio – singleton context, unlocked on first user gesture ──
+//
+// On iOS Safari the AudioContext starts in "suspended" state and can ONLY
+// be resumed synchronously inside a touchstart/click handler. Scroll events
+// and setTimeout callbacks do not qualify. We therefore unlock the context
+// on the very first touchstart/click that reaches the document, so all
+// subsequent programmatic sounds (tick, success, error) work immediately.
 let audioCtx: AudioContext | null = null;
 
-function getAudioContext(): AudioContext {
-  if (!audioCtx) {
-    audioCtx = new (
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-    )();
+function getAudioContext(): AudioContext | null {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
+    }
+    return audioCtx;
+  } catch {
+    return null;
   }
-  if (audioCtx.state === "suspended") audioCtx.resume();
-  return audioCtx;
+}
+
+// Must be called during a real user gesture (touchstart / click).
+// Creates the context if needed, resumes it, and plays a silent buffer –
+// that combination reliably unlocks audio on both iOS and Android.
+function unlockAudioContext() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") ctx.resume();
+    // Silent 1-sample buffer tricks iOS into marking the context as "allowed"
+    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+  } catch { /* ignore */ }
 }
 
 function playTick() {
   try {
     const ctx = getAudioContext();
+    if (!ctx || ctx.state !== "running") return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.frequency.value = 800;
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+    osc.frequency.value = 1200;
+    osc.type = "sine";
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
     osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.05);
+    osc.stop(ctx.currentTime + 0.04);
   } catch { /* ignore */ }
 }
 
 function playSuccess() {
   try {
     const ctx = getAudioContext();
+    if (!ctx || ctx.state !== "running") return;
     [523, 659, 784].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -68,6 +99,7 @@ function playSuccess() {
 function playError() {
   try {
     const ctx = getAudioContext();
+    if (!ctx || ctx.state !== "running") return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -224,7 +256,7 @@ function DrumWheel({ digit, onChange }: { digit: number; onChange: (d: number) =
       if (d !== digit) {
         onChange(d);
         playTick();
-        haptic(10);
+        haptic(18);
       }
       if (idx < 5 || idx > 10 * DRUM_REPS - 5) {
         el.scrollTop = (20 + d) * DRUM_H;
@@ -237,6 +269,7 @@ function DrumWheel({ digit, onChange }: { digit: number; onChange: (d: number) =
       <div
         ref={scrollRef}
         className="drum-scroll"
+        onTouchStart={unlockAudioContext}
         onScroll={handleScroll}
         style={{
           width: "100%",
@@ -548,6 +581,18 @@ function GameClientInner({
     return arr;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task?.id]);
+
+  // ── Unlock AudioContext on first user gesture ──
+  // iOS requires this to happen synchronously inside touchstart/click.
+  useEffect(() => {
+    const unlock = () => { unlockAudioContext(); };
+    document.addEventListener("touchstart", unlock, { once: true, passive: true });
+    document.addEventListener("click",      unlock, { once: true });
+    return () => {
+      document.removeEventListener("touchstart", unlock);
+      document.removeEventListener("click",      unlock);
+    };
+  }, []);
 
   // ── Restore session + start timer ──
   useEffect(() => {

@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useI18n } from "@/lib/useI18n";
 
 function haptic(pattern: number | number[]) {
-  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch { /* iOS */ }
+  try {
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(pattern);
+  } catch { /* iOS has no vibrate */ }
 }
 import dynamic from "next/dynamic";
 import { motion, useReducedMotion } from "framer-motion";
