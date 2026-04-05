@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, Component } from "react";
+import type { ReactNode, ErrorInfo } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -12,6 +13,42 @@ import { playCorrect, playWrong, playHint, playDing, playFanfare } from "@/lib/s
 import { supabase } from "@/lib/supabase";
 import { ACTIVE_GAME_KEY } from "@/app/ContinueBanner";
 import { getLocationImage } from "@/lib/locationImages";
+
+// ── Error boundary – captures runtime crashes and shows them on screen ──
+class GameErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[GameErrorBoundary]", error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="fixed inset-0 z-[999] bg-black flex flex-col items-start justify-start p-6 overflow-auto">
+          <p className="text-red-400 font-bold text-lg mb-2">Crash fanget:</p>
+          <pre className="text-red-300 text-xs whitespace-pre-wrap break-all bg-[#1a0a0a] p-4 rounded-xl w-full mb-4">
+            {this.state.error.message}{"\n\n"}{this.state.error.stack}
+          </pre>
+          <button
+            onClick={() => this.setState({ error: null })}
+            className="bg-amber-600 text-black font-bold py-3 px-6 rounded-xl"
+          >
+            Prøv igen
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function TaskImage({ locationName, imageUrl }: { locationName: string; imageUrl: string | null }) {
   const [error, setError] = useState(false);
@@ -410,7 +447,7 @@ function WordScramble({
   );
 }
 
-export default function GameClient({
+function GameClientInner({
   scenario,
   tasks,
 }: {
@@ -1220,5 +1257,13 @@ export default function GameClient({
       </div>
     )}
     </>
+  );
+}
+
+export default function GameClient(props: { scenario: Scenario; tasks: Task[] }) {
+  return (
+    <GameErrorBoundary>
+      <GameClientInner {...props} />
+    </GameErrorBoundary>
   );
 }
