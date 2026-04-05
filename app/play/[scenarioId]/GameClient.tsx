@@ -52,6 +52,16 @@ class GameErrorBoundary extends Component<
 
 function TaskImage({ locationName, imageUrl }: { locationName: string; imageUrl: string | null }) {
   const [error, setError] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const shouldReduce = useReducedMotion();
+
+  useEffect(() => {
+    if (shouldReduce) return;
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [shouldReduce]);
+
   if (!locationName && !imageUrl) return null;
   const src = getLocationImage(locationName, imageUrl);
   return (
@@ -61,7 +71,12 @@ function TaskImage({ locationName, imageUrl }: { locationName: string; imageUrl:
         <img
           src={src}
           alt={locationName}
-          className="w-full h-full object-cover"
+          className="w-full object-cover"
+          style={{
+            height: "150%",
+            transform: shouldReduce ? undefined : `translateY(${Math.min(scrollY * 0.3, 24)}px)`,
+            willChange: shouldReduce ? undefined : "transform",
+          }}
           onError={() => setError(true)}
         />
       )}
@@ -151,8 +166,25 @@ function DrumWheel({ digit, onChange }: { digit: number; onChange: (d: number) =
       const idx = Math.round(el.scrollTop / DRUM_H);
       const d = ((idx % 10) + 10) % 10;
       prevDigit.current = d;
-      if (d !== digit) onChange(d);
-      // Silently re-center if near edges (no event loop since scrollTop assignment won't snap-trigger)
+      if (d !== digit) {
+        onChange(d);
+        // Tick sound via Web Audio API
+        try {
+          const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(900, ctx.currentTime);
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.05);
+        } catch { /* ignore – AudioContext may be unavailable */ }
+        // Haptic
+        if (typeof navigator.vibrate === "function") navigator.vibrate(10);
+      }
+      // Silently re-center if near edges
       if (idx < 5 || idx > 10 * DRUM_REPS - 5) {
         el.scrollTop = (20 + d) * DRUM_H;
       }
@@ -486,9 +518,12 @@ function GameClientInner({
   const [transitionTitle, setTransitionTitle] = useState("");
   const [transitionTaskNumber, setTransitionTaskNumber] = useState(1);
   const shouldReduce = useReducedMotion();
+  const [showRewardBanner, setShowRewardBanner] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
   const answerAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rewardTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Restore saved team name and progress
   useEffect(() => {
@@ -525,6 +560,26 @@ function GameClientInner({
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [teamName, scenario.id]);
+
+  // Exit confirmation – intercept browser back / tab close
+  useEffect(() => {
+    if (!teamName || finished) return;
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    function handlePopState() {
+      window.history.pushState(null, "", window.location.href);
+      setShowExitModal(true);
+    }
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [teamName, finished]);
 
   const fireConfetti = useCallback(() => {
     if (shouldReduce) return;
@@ -600,7 +655,7 @@ function GameClientInner({
           />
           <button
             onClick={handleStartGame}
-            className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
+            className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl text-base btn-glow"
           >
             Start spillet →
           </button>
@@ -616,6 +671,8 @@ function GameClientInner({
   }
 
   async function handleNextTask() {
+    setShowRewardBanner(false);
+    if (rewardTimerRef.current) clearTimeout(rewardTimerRef.current);
     if (currentIndex + 1 >= tasks.length) {
       if (timerRef.current) clearInterval(timerRef.current);
       const key = getStorageKey(scenario.id);
@@ -678,6 +735,13 @@ function GameClientInner({
     if (isMatch) {
       setAnswerState("correct");
       playCorrect();
+      if (typeof navigator.vibrate === "function") navigator.vibrate([50, 30, 50]);
+      // Reward banner
+      if (task.narrative_reward) {
+        if (rewardTimerRef.current) clearTimeout(rewardTimerRef.current);
+        setShowRewardBanner(true);
+        rewardTimerRef.current = setTimeout(() => setShowRewardBanner(false), 3000);
+      }
       // Green ring + gold rain
       if (!shouldReduce) {
         const el = answerAreaRef.current;
@@ -693,6 +757,7 @@ function GameClientInner({
     } else {
       setAnswerState("wrong");
       playWrong();
+      if (typeof navigator.vibrate === "function") navigator.vibrate(200);
       // Shake animation
       if (!shouldReduce) {
         const el = answerAreaRef.current;
@@ -1026,7 +1091,7 @@ function GameClientInner({
 
         {/* Narrative intro */}
         {task.narrative_intro && (
-          <div className="bg-[#1a1828] border-l-4 border-amber-700 rounded-r-xl px-5 py-4 mb-5 italic text-[#c8b89a] text-base leading-relaxed">
+          <div className="bg-[#1a1828] border-l-4 border-amber-700 rounded-r-xl px-5 py-4 mb-5 italic text-[#c8b89a] text-[17px] leading-relaxed">
             {task.narrative_intro}
           </div>
         )}
@@ -1050,9 +1115,19 @@ function GameClientInner({
         )}
 
         {/* Question */}
-        <div className="bg-[#14131f] border border-amber-900/30 rounded-xl p-5 mb-6">
-          <p className="text-[#e8e0d0] text-base leading-relaxed">{task.question}</p>
+        <div className="bg-[#14131f] border border-amber-900/30 rounded-xl p-5 mb-4">
+          <p className="text-[#e8e0d0] text-[18px] leading-relaxed">{task.question}</p>
         </div>
+
+        {/* Vis rute igen */}
+        {task.latitude && task.longitude && (
+          <button
+            onClick={() => setShowNavigation(true)}
+            className="mb-4 text-sm text-amber-700 hover:text-amber-500 underline underline-offset-2 transition-colors flex items-center gap-1"
+          >
+            ← Vis rute til lokation
+          </button>
+        )}
 
         {/* Answer area */}
         <div ref={answerAreaRef} key={task?.id}>
@@ -1173,7 +1248,7 @@ function GameClientInner({
               }}
               onKeyDown={(e) => e.key === "Enter" && handleCheckAnswer()}
               placeholder="Skriv dit svar her..."
-              className={`w-full bg-[#1a1828] border rounded-xl px-4 py-4 text-[#e8e0d0] text-base placeholder-[#4a4560] outline-none transition-colors ${
+              className={`w-full bg-[#1a1828] border rounded-xl px-4 py-4 text-[#e8e0d0] text-[17px] placeholder-[#4a4560] transition-colors input-glow ${
                 answerState === "wrong"
                   ? "border-red-700 focus:border-red-500"
                   : "border-amber-900/40 focus:border-amber-600"
@@ -1185,7 +1260,7 @@ function GameClientInner({
             <button
               onClick={() => handleCheckAnswer()}
               disabled={!textAnswer.trim()}
-              className="w-full mt-3 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/40 disabled:text-amber-800 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
+              className="w-full mt-3 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-900/40 disabled:text-amber-800 text-[#0f0e17] font-semibold py-4 rounded-xl text-base btn-glow disabled:shadow-none"
             >
               Tjek svar
             </button>
@@ -1227,7 +1302,7 @@ function GameClientInner({
         {taskSolved && (
           <button
             onClick={handleNextTask}
-            className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl transition-colors text-base"
+            className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-4 rounded-xl text-base btn-glow"
           >
             {currentIndex + 1 >= tasks.length ? "Se resultat 🏆" : "Næste opgave →"}
           </button>
@@ -1235,6 +1310,42 @@ function GameClientInner({
         </div>{/* close px-4 py-5 */}
       </main>
     </div>
+
+    {/* Reward banner – slides up from bottom on correct answer */}
+    {showRewardBanner && task?.narrative_reward && (
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 reward-banner">
+        <div className="max-w-lg mx-auto bg-[#14131f] border border-amber-700/60 rounded-2xl px-5 py-4 shadow-[0_-4px_24px_rgba(245,158,11,0.15)]">
+          <p className="text-amber-400 font-semibold text-sm mb-1.5">✓ Korrekt svar!</p>
+          <p className="text-[#e8e0d0] text-[17px] leading-relaxed">{task.narrative_reward}</p>
+        </div>
+      </div>
+    )}
+
+    {/* Exit confirmation modal */}
+    {showExitModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm">
+        <div className="bg-[#14131f] border border-amber-900/40 rounded-2xl p-6 w-full max-w-sm shadow-xl">
+          <h2 className="text-amber-300 font-bold text-lg mb-2">Afslutte spillet?</h2>
+          <p className="text-[#a09880] text-sm leading-relaxed mb-6">
+            Dit fremskridt er gemt automatisk. Du kan fortsætte spillet senere.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => setShowExitModal(false)}
+              className="w-full bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold py-3 rounded-xl text-base btn-glow"
+            >
+              Fortsæt spillet
+            </button>
+            <button
+              onClick={() => { window.location.href = "/"; }}
+              className="w-full border border-amber-900/40 hover:border-amber-700 text-amber-800 hover:text-amber-600 font-semibold py-3 rounded-xl text-base transition-colors"
+            >
+              Afslut
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* Test navigation overlay – activated by 5 taps on progress bar */}
     {testMode && (

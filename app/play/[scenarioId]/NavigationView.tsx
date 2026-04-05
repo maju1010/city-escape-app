@@ -150,6 +150,13 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
   const needleRotation = bearing - heading;
   const isNearby = distance !== null && distance <= 50;
 
+  // Haptic feedback when player arrives
+  useEffect(() => {
+    if (isNearby && typeof navigator.vibrate === "function") {
+      navigator.vibrate([100, 50, 100, 50, 100]);
+    }
+  }, [isNearby]);
+
   const [imgError, setImgError] = useState(false);
   const imgSrc = getLocationImage(task.location_name || "", task.image_url);
 
@@ -298,7 +305,7 @@ export default function NavigationView({ task, onArrived, onSkip }: Props) {
               disabled={!isNearby && !geoError}
               className={`w-full py-4 rounded-xl font-semibold text-base transition-all ${
                 isNearby || geoError
-                  ? "bg-amber-600 hover:bg-amber-500 text-[#0f0e17]"
+                  ? "bg-amber-600 hover:bg-amber-500 text-[#0f0e17] btn-glow"
                   : "bg-[#1a1828] border border-amber-900/30 text-[#4a4560] cursor-not-allowed"
               }`}
             >

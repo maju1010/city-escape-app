@@ -88,12 +88,47 @@ body {
 .drum-scroll::-webkit-scrollbar { display: none; }
 .drum-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── Loading skeleton pulse ── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+.skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background: #1a1828;
+  border-radius: 0.5rem;
+}
+
+/* ── Reward banner slide-up ── */
+@keyframes reward-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.reward-banner {
+  animation: reward-slide-up 0.4s ease-out forwards;
+}
+
+/* ── Neon amber glow on buttons ── */
+.btn-glow {
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  transition: box-shadow 0.2s ease, background-color 0.15s ease;
+}
+.btn-glow:hover {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+}
+.input-glow:focus {
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+  outline: none;
+}
+
 /* ── prefers-reduced-motion: disable all custom animations ── */
 @media (prefers-reduced-motion: reduce) {
   .answer-shake,
   .correct-ring,
   .hint-enter,
-  .gold-particle {
+  .gold-particle,
+  .reward-banner,
+  .skeleton {
     animation: none !important;
     opacity: 1 !important;
   }
