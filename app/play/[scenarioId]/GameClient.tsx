@@ -44,7 +44,7 @@ export type Task = {
   narrative_intro: string;
   question: string;
   answer: string;
-  answer_type: "text" | "photo" | "multiple_choice" | "combination_lock" | "word_scramble";
+  answer_type: "text" | "photo" | "multiple_choice" | "combination_lock" | "word_scramble" | "number_picker";
   choices: string | null;
   narrative_reward: string;
   hint1: string;
@@ -175,6 +175,64 @@ function DrumLock({ value, onChange }: { value: string; onChange: (v: string) =>
           <DrumWheel key={i} digit={d} onChange={(v) => setDigit(i, v)} />
         ))}
       </div>
+    </div>
+  );
+}
+
+// ── Number picker ──
+function NumberPicker({
+  answerState,
+  onCheck,
+  onReset,
+}: {
+  answerState: "idle" | "correct" | "wrong";
+  onCheck: (v: string) => void;
+  onReset: () => void;
+}) {
+  const [selected, setSelected] = useState<number | null>(null);
+
+  function pick(n: number) {
+    setSelected(n);
+    if (answerState === "wrong") onReset();
+  }
+
+  return (
+    <div className="mb-6">
+      <p className="text-xs text-[#6b6380] tracking-widest uppercase text-center mb-4">
+        Vælg et tal
+      </p>
+
+      {/* Number grid */}
+      <div className="flex flex-wrap justify-center gap-3 mb-5">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
+          const isSelected = selected === n;
+          return (
+            <button
+              key={n}
+              onClick={() => pick(n)}
+              className={`w-16 h-16 rounded-2xl text-2xl font-bold border-2 transition-all duration-150 select-none active:scale-90 ${
+                isSelected
+                  ? "bg-amber-600 border-amber-400 text-[#0f0e17] shadow-[0_0_18px_rgba(245,158,11,0.45)]"
+                  : "bg-[#1a1828] border-amber-900/40 text-amber-300 hover:border-amber-500 hover:bg-amber-900/20"
+              }`}
+            >
+              {n}
+            </button>
+          );
+        })}
+      </div>
+
+      {answerState === "wrong" && (
+        <p className="text-red-400 text-sm text-center mb-3">Forkert tal – prøv igen</p>
+      )}
+
+      <button
+        onClick={() => selected !== null && onCheck(String(selected))}
+        disabled={selected === null}
+        className="w-full py-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#0f0e17] font-semibold text-base transition-all disabled:opacity-40"
+      >
+        Tjek svar
+      </button>
     </div>
   );
 }
@@ -949,6 +1007,14 @@ export default function GameClient({
               <p className="text-red-400 text-sm mt-3 text-center">Forkert kode – prøv igen.</p>
             )}
           </div>
+        ) : task.answer_type === "number_picker" ? (
+          /* Number picker */
+          <NumberPicker
+            key={task.id}
+            answerState={answerState}
+            onCheck={handleCheckAnswer}
+            onReset={() => setAnswerState("idle")}
+          />
         ) : task.answer_type === "word_scramble" ? (
           /* Word scramble */
           <WordScramble
